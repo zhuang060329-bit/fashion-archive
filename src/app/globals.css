@@ -256,9 +256,15 @@ body {
   border: 1px solid var(--color-archive-700);
   padding: 0.2rem 0.5rem;
   display: inline-block;
-  white-space: nowrap;
+  /* white-space: normal 讓極長字串在必要時換行而不是被 nowrap 逼出版面。
+     用 break-word 而非 anywhere ——anywhere 會把 min-content 尺寸縮到單字元
+     寬度，造成短字（如 SEQUIN）被逐字斷成一行一字；break-word 只在整個字
+     超出容器寬度時才斷，短關鍵字仍維持單行緊湊感 */
+  white-space: normal;
   max-width: 100%;
   overflow-wrap: break-word;
+  word-break: normal;
+  line-height: 1.4;
 }
 
 /* ─────────────────────────────────────────────────────────────

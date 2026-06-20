@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fashion Archive
 
-## Getting Started
+Post-1970 fashion history interactive editorial / archive.
 
-First, run the development server:
+A single-page, long-scroll dossier covering six decades of fashion
+trends (1970s–2020s), presented as an archival "intelligence" document
+rather than a conventional blog or e-commerce layout.
+
+## Tech Stack
+
+- [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- React 19 + TypeScript
+- Tailwind CSS v4 (CSS-first `@theme` tokens)
+- [GSAP](https://gsap.com/) + ScrollTrigger (`@gsap/react`) — scroll-driven reveal/parallax
+- [Lenis](https://github.com/darkroomengineering/lenis) — smooth scroll
+- [Motion](https://motion.dev/) (Framer Motion) — accordion expand/collapse
+- Cormorant Garamond + IBM Plex Mono (`next/font/google`)
+
+No backend, no database, no CMS, no authentication. All content lives
+in local TypeScript data files and the site is statically generated.
+
+## Local Setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev      # start dev server (Turbopack)
+npm run build    # production build
+npm run start    # serve production build
+npm run lint      # eslint
+npx tsc --noEmit  # typecheck
+```
 
-## Learn More
+See [QA.md](./QA.md) for the full manual QA / accessibility verification
+checklist before shipping.
 
-To learn more about Next.js, take a look at the following resources:
+## Content Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All editorial content lives under `src/data/`, typed via
+`src/data/types.ts`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `eras.ts` — six `Era` entries (1970s–2020s): title, statement,
+  visual keywords, color profile, trend tags
+- `cases.ts` — `Case` entries (runway moments, campaigns, brand
+  moments) linked to eras, each with `sourceNotes`
+- `garments.ts` — `Garment` entries (cultural objects, not products):
+  statement, cultural function, key-moments timeline, associated brands
+- `trends.ts` — `Trend` entries that cross multiple eras
+- `archive.ts` — site-level config: thesis lines, disclaimer, version
 
-## Deploy on Vercel
+Every factual claim carries a `SourceNote` with a `confidence` level:
+`verified` | `widely-reported` | `contested`. See
+[CREDITS.md](./CREDITS.md) for the full reference list.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Asset / Copyright Policy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **No brand or designer imagery is committed to this repository.**
+- `ImageRef` entries in the data files are one of: `external-url`
+  (publicly available links), `placeholder`, or `abstract-only`
+  (no image — conveyed through typography/layout only).
+- No `og:image` is configured, by design, rather than using an
+  unauthorized image.
+- Brand names, designer names, and historical events are referenced
+  for educational, analytical, and critical-commentary purposes only.
+
+## Disclaimer
+
+This project is an independent educational and editorial portfolio
+project. It is not affiliated with, endorsed by, or commercially
+connected to any of the brands, designers, or organisations
+referenced. All factual claims are supported by source notes within
+the data files; see [CREDITS.md](./CREDITS.md).
+
+## Current Status
+
+- Phase 1–4B: complete (full six-era site, chapter navigation, trend
+  system, garment index, responsive/accessibility pass, git
+  checkpoint)
+- Phase 4C: manual QA package + defensive fixes (this phase)
+- No external brand imagery committed
+- Static Next.js site — no database / CMS / auth
+- Latest checkpoint commit: `223affb3156dacb606711ecef523ed2d3200adcf`
+  ("建立時尚互動檔案網站骨架")
