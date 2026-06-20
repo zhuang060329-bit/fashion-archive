@@ -2,6 +2,9 @@
 
 Post-1970 fashion history interactive editorial / archive.
 
+- Repo: <https://github.com/zhuang060329-bit/fashion-archive>
+- Production: <https://fashion-archive-chi.vercel.app>
+
 A single-page, long-scroll dossier covering six decades of fashion
 trends (1970s–2020s), presented as an archival "intelligence" document
 rather than a conventional blog or e-commerce layout.
@@ -89,5 +92,6 @@ the data files; see [CREDITS.md](./CREDITS.md).
   exact limitations
 - No external brand imagery committed
 - Static Next.js site — no database / CMS / auth
-- Not yet deployed; this reflects the latest verified local checkpoint
-  on `master` — see `git log` for the exact commit
+- Deployed on Vercel from the `main` branch (auto-deploys on push); this
+  reflects the latest verified checkpoint — see `git log` for the exact
+  commit
