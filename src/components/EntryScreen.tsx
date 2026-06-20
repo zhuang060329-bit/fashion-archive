@@ -160,9 +160,12 @@ export function EntryScreen() {
           </div>
         </div>
 
-        {/* Vertical era range marker — decorative */}
+        {/* Vertical era range marker — decorative。原本 hidden lg:flex，
+            手機版直向螢幕置中後上下留白偏大，這個標記改全寬度顯示，
+            用既有裝飾元素填補空白角落，而非單純搬移留白位置 */}
         <div
-          className="absolute right-6 md:right-10 bottom-16 type-mono-xs hidden lg:flex flex-col items-center gap-2"
+          aria-hidden="true"
+          className="absolute right-6 md:right-10 bottom-16 type-mono-xs flex flex-col items-center gap-2"
           style={{
             writingMode: 'vertical-rl',
             letterSpacing: '0.2em',

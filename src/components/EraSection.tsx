@@ -212,7 +212,13 @@ function FullTitleLayout({ era, cases, expandedCase, setExpandedCase }: LayoutPr
         <div
           className="era-num-bg type-era-num absolute -right-4 top-0 select-none"
           aria-hidden="true"
-          style={{ opacity: 0.05 }}
+          style={{
+            // 原本 opacity 0.05 + 預設 archive-800 在 1990s/2020s 幾乎完全不可見，
+            // 比 overlay 版型（1980s/2010s）的 accent 數字弱得多。改用 accent 色 +
+            // 稍高 opacity，與其他版型的「可見但低調」一致，2020s 不再是六章最弱的一個
+            color: 'var(--era-accent)',
+            opacity: 0.1,
+          }}
         >
           {era.id.replace('s', '')}
         </div>
