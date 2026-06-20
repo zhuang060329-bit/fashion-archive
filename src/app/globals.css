@@ -1,26 +1,408 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS — Tailwind v4 CSS-first
+   Source of truth: @theme block
+   ───────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Palette ── */
+  --color-archive-black:   #0A0906;
+  --color-archive-white:   #F0EDE6;
+  --color-archive-900:     #161410;
+  --color-archive-800:     #1E1C19;
+  --color-archive-700:     #252320;
+  --color-archive-600:     #3A3835;
+  --color-archive-500:     #5A5853;
+  --color-archive-400:     #7A7A6A;
+  --color-archive-300:     #9A9A8A;
+  --color-archive-200:     #C8C5BC;
+  --color-archive-100:     #E4E1D8;
+
+  /* ── Per-era accent palette ── */
+  --color-era-70:  #C9A96E;   /* warm amber — disco / punk tension */
+  --color-era-80:  #D4AF37;   /* gold — logo, power, excess */
+  --color-era-90:  #8E8E7E;   /* cold grey — anti-fashion, void */
+  --color-era-00:  #B8860B;   /* dark goldenrod — paparazzi flash */
+  --color-era-10:  #E63223;   /* signal red — streetwear brand signal */
+  --color-era-20:  #9B8B7A;   /* muted warm — quiet luxury, material */
+
+  /* ── Typography ── */
+  --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+  --font-mono:    var(--font-ibm-mono), 'Courier New', monospace;
+  --font-sans:    system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+
+  /* ── Letter spacing ── */
+  --tracking-archive:   0.12em;
+  --tracking-archive-wide: 0.22em;
+
+  /* ── Transition ── */
+  --ease-archive: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Direct CSS variables (不需生成 utility class 的值) ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --line-color:     #252320;
+  --grain-opacity:  0.055;
+  --scan-opacity:   0.022;
+
+  /* Grid rhythm */
+  --col-index:   22%;
+  --col-content: 78%;
+
+  /* Animation */
+  --duration-slow: 1.1s;
+  --duration-base: 0.65s;
+  --duration-fast: 0.38s;
+
+  /* Semantic z-index scale */
+  --z-content:     10;    /* in-section foreground layer, e.g. OverlayLayout text above era number */
+  --z-nav:         200;   /* ChapterNav */
+  --z-chapter-nav: 200;   /* alias, kept for existing references */
+  --z-overlay:     400;   /* reserved for future modal/overlay surfaces */
+  --z-texture:     800;   /* grain + scanline texture group */
+  --z-grain:       800;
+  --z-scanline:    801;
+  --z-cursor:      900;   /* custom cursor dot/label */
+  --z-skip-link:   950;   /* a11y skip-to-content link — must clear cursor */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ─────────────────────────────────────────────────────────────
+   RESET & BASE
+   ───────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Tailwind v4 preflight（@import "tailwindcss"）已經在它自己的
+   @layer base 內對 *, ::before, ::after, ::backdrop 做了
+   box-sizing/margin/padding:0 reset。這裡不再重複宣告 ——
+   重複的版本在建置後會被編譯成「未分層」規則，依 cascade layers
+   規則永遠贏過任何 @layer 內的 utility class（px-6、mb-3、
+   space-y-* 等都會失效，造成全站邊距消失，已實測確認）。 */
+
+html {
+  background-color: var(--color-archive-black);
+  color: var(--color-archive-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  font-family: var(--font-sans);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-archive-black);
+  color: var(--color-archive-white);
+  min-height: 100svh;
+  overflow-x: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GRAIN OVERLAY — film grain texture, position:fixed
+   ───────────────────────────────────────────────────────────── */
+
+.grain-layer {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: var(--z-grain);
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  will-change: transform;
+  animation: grain-shift 0.8s steps(1) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0, 0) }
+  20%  { transform: translate(-4%, 9%) }
+  40%  { transform: translate(-9%, -4%) }
+  60%  { transform: translate(4%, -12%) }
+  80%  { transform: translate(9%, 4%) }
+  100% { transform: translate(0, 0) }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCANLINE OVERLAY — very subtle, suggests CRT / scan document
+   ───────────────────────────────────────────────────────────── */
+
+.scanline-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-scanline);
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, var(--scan-opacity)) 3px,
+    rgba(0, 0, 0, var(--scan-opacity)) 4px
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ARCHIVE TYPOGRAPHY UTILITIES
+   ───────────────────────────────────────────────────────────── */
+
+/* Display / chapter title — Cormorant Garamond Italic */
+.type-hero {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(4.5rem, 14vw, 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+}
+
+.type-chapter {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.type-statement {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: var(--color-archive-300);
+}
+
+/* Mono metadata — IBM Plex Mono */
+.type-mono-xs {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-archive-wide);
+  text-transform: uppercase;
+  color: var(--color-archive-400);
+}
+
+.type-mono-sm {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-archive);
+  text-transform: uppercase;
+  color: var(--color-archive-300);
+}
+
+.type-mono-base {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-archive);
+  text-transform: uppercase;
+}
+
+/* Era number — huge, Cormorant, used as spatial element */
+.type-era-num {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(5rem, 15vw, 13rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-archive-800);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ARCHIVE LINE / BORDER UTILITIES
+   ───────────────────────────────────────────────────────────── */
+
+.archive-line {
+  border-color: var(--line-color);
+  border-style: solid;
+}
+
+.archive-line-top    { border-top-width: 1px; }
+.archive-line-bottom { border-bottom-width: 1px; }
+.archive-line-left   { border-left-width: 1px; }
+.archive-line-right  { border-right-width: 1px; }
+
+/* Corner accent mark — dossier corner */
+.corner-mark::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--color-archive-500);
+  border-style: solid;
+  border-width: 1px 0 0 1px;
+}
+
+.corner-mark-tl::before { top: 0; left: 0; }
+.corner-mark-tr::before { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.corner-mark-bl::before { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.corner-mark-br::before { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+/* ─────────────────────────────────────────────────────────────
+   KEYWORD / TAG CHIPS
+   ───────────────────────────────────────────────────────────── */
+
+.keyword-tag {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-archive-400);
+  border: 1px solid var(--color-archive-700);
+  padding: 0.2rem 0.5rem;
+  display: inline-block;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ACCESSIBILITY — skip link + focus-visible ring
+   ───────────────────────────────────────────────────────────── */
+
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: var(--z-skip-link);
+  background: var(--color-archive-white);
+  color: var(--color-archive-black);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  transition: top 0.15s var(--ease-archive);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-archive-white);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE GRID UTILITIES — accordion expand + era layouts
+   Mobile-first: single column below breakpoint, restore desktop
+   2-up / 3-up layout above it. Keeps long brand/garment-id words
+   from forcing horizontal scroll on narrow viewports.
+   ───────────────────────────────────────────────────────────── */
+
+.expand-grid-2-1,
+.era-grid-left-index,
+.era-grid-case-full,
+.header-grid-1-2 {
+  /* minmax(0, 1fr) — 沒有 0 下限的話，track 預設 min-width:auto 會被
+     子層未設 min-w-0 的 flex/truncate 元素撐寬，導致 mobile 橫向溢出 */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .expand-grid-2-1 {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+
+  .era-grid-left-index {
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 3.2fr);
+  }
+
+  .header-grid-1-2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+}
+
+@media (min-width: 640px) {
+  .era-grid-case-full {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Case fragment detail grid (label column + text column) — stacks below 480px
+   so BRAND/DESIGNER/TYPE labels don't crush the statement into a sliver */
+.case-detail-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 480px) {
+  .case-detail-grid {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}
+
+.break-word {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLL REVEAL — initial state (GSAP will animate in)
+   ───────────────────────────────────────────────────────────── */
+
+.will-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.will-reveal-fast {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   REDUCED MOTION — override all animations and transitions
+   ───────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .grain-layer {
+    animation: none;
+  }
+
+  .will-reveal,
+  .will-reveal-fast {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE BASELINE
+   ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  :root {
+    --col-index: 100%;
+    --col-content: 100%;
+  }
+
+  .type-hero {
+    font-size: clamp(3.5rem, 18vw, 6rem);
+    line-height: 0.90;
+  }
+
+  .type-chapter {
+    font-size: clamp(2.2rem, 10vw, 3.5rem);
+  }
+
+  .type-era-num {
+    font-size: clamp(4rem, 22vw, 8rem);
+  }
 }
