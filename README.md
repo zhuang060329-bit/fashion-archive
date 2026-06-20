@@ -38,8 +38,8 @@ npm run lint      # eslint
 npx tsc --noEmit  # typecheck
 ```
 
-See [QA.md](./QA.md) for the full manual QA / accessibility verification
-checklist before shipping.
+See [QA.md](./QA.md) for the manual QA checklist — including which
+accessibility checks are still outstanding — before shipping.
 
 ## Content Structure
 
@@ -80,11 +80,15 @@ the data files; see [CREDITS.md](./CREDITS.md).
 
 ## Current Status
 
-- Phase 1–4B: complete (full six-era site, chapter navigation, trend
-  system, garment index, responsive/accessibility pass, git
-  checkpoint)
-- Phase 4C: manual QA package + defensive fixes (this phase)
+- Full six-era site, chapter navigation, trend system, garment index,
+  responsive pass, and a final visual-polish pass are complete
+- Manual QA has been partially run against [QA.md](./QA.md): keyboard
+  activation and responsive layout were checked in a real browser;
+  reduced-motion and screen-reader behavior are implemented per code
+  review only and have not been manually verified — see QA.md for the
+  exact limitations
 - No external brand imagery committed
 - Static Next.js site — no database / CMS / auth
-- Latest checkpoint commit: `223affb3156dacb606711ecef523ed2d3200adcf`
-  ("建立時尚互動檔案網站骨架")
+- Not yet deployed; deployment-readiness checks are in progress
+- Latest commit: `c7078fddbb277b267477a74f32c6e92ddbddf32c`
+  ("打磨時尚檔案網站視覺細節")
