@@ -346,7 +346,14 @@ function CaseFragment({ caseItem, isExpanded, onToggle }: CaseFragmentProps) {
       onClick={onToggle}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onToggle()}
+      onKeyDown={(e) => {
+        // role="button" 自製元素：Enter 與 Space 都要支援，
+        // Space 需 preventDefault，否則瀏覽器預設行為會捲動整頁
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onToggle()
+        }
+      }}
       aria-expanded={isExpanded}
       style={{ cursor: 'pointer' }}
     >
@@ -461,7 +468,14 @@ function CaseFragmentCompact({ caseItem, isExpanded, onToggle }: CaseFragmentPro
       onClick={onToggle}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onToggle()}
+      onKeyDown={(e) => {
+        // role="button" 自製元素：Enter 與 Space 都要支援，
+        // Space 需 preventDefault，否則瀏覽器預設行為會捲動整頁
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onToggle()
+        }
+      }}
       aria-expanded={isExpanded}
       style={{
         cursor: 'pointer',

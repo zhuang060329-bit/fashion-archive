@@ -18,8 +18,10 @@ export default function ArchivePage() {
   const era2010 = getEraById('2010s')
   const era2020 = getEraById('2020s')
 
+  // tabIndex={-1}：skip link 啟動後讓 focus 真正移入 main，
+  // 而不是停在原處（main 本身不在 tab 順序中，僅作為程式化 focus 目標）
   return (
-    <main id="main-content">
+    <main id="main-content" tabIndex={-1}>
       {/* ── ENTRY SCREEN ─────────────────────────────────────── */}
       <EntryScreen />
 

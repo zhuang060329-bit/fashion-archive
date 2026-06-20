@@ -52,7 +52,14 @@ export function GarmentIndex() {
                 onClick={() => setExpandedId(isExpanded ? null : garment.id)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && setExpandedId(isExpanded ? null : garment.id)}
+                onKeyDown={(e) => {
+                  // role="button" 自製元素：Enter 與 Space 都要支援，
+                  // Space 需 preventDefault，否則瀏覽器預設行為會捲動整頁
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setExpandedId(isExpanded ? null : garment.id)
+                  }
+                }}
                 aria-expanded={isExpanded}
                 style={{
                   display: 'grid',

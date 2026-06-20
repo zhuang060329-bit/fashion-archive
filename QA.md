@@ -163,4 +163,143 @@ Rendering → 找到 **Emulate CSS media feature
 - **鍵盤互動的自動化驗證有工具侷限**——開發過程中使用的瀏覽器自動化
   preview 工具無法送出受信任（trusted）的鍵盤事件，因此 Enter/Space
   展開邏輯目前僅做過程式碼審查與滑鼠點擊驗證，本文件 B 節列出的人工
-  鍵盤測試尚待執行。
+  鍵盤測試尚待執行。（**Phase 4D 更新**：部分項目已用真實 Chrome 視窗
+  補測，細節見下方 Phase 4D 章節。）
+
+---
+
+## Phase 4D Manual Verification
+
+- **Date**: 2026-06-20
+- **Browser**: Google Chrome（真實視窗，非自動化 headless preview）
+- **OS**: Windows 11
+- **測試方式**：用 Claude-in-Chrome 瀏覽器自動化工具開啟真實 Chrome
+  分頁，搭配 `.focus()` 定位 + 真實鍵盤按鍵動作（非 `dispatchEvent`）。
+  這個環境下 `document.hasFocus()` 回報 `true`（先前 Phase 4B 用的
+  embedded preview 工具裡這個值永遠是 `false`，導致 `:focus` /
+  `:focus-visible` 無法在那邊測試）。
+
+### Keyboard Test
+
+**Passed（已用真實瀏覽器確認）**：
+
+- Skip link 可用 `.focus()` 定位，`:focus` 與 `:focus-visible` 都正確
+  match，CSS `top: 1rem` 正確套用——截圖確認白底框 + 清楚 focus ring
+  outline 完整顯示，没有被自訂游標、grain、scanline 蓋住
+- Skip link 用 Enter 啟動 `<a href="#main-content">` 至少一次成功觸發
+  hash 導覽（`window.location.hash` 變為 `#main-content`），證實機制
+  本身可運作（雖然重複測試時這個工具的 Enter 模擬不是每次都能重現，
+  見下方 Issues）
+- TrendSystem 的展開按鈕（原生 `<button>`）：Enter 與 Space **都**能
+  正確切換 `aria-expanded`（true ↔ false），用真實按鍵確認
+- GarmentIndex row（自製 `role="button"` 的 `<div>`）：Enter 能正確
+  切換 `aria-expanded`
+- focus-visible ring 在 TrendSystem 按鈕上用 `.matches(':focus-visible')`
+  確認為 `true`
+
+**Issues 發現並修正**：
+
+1. **GarmentIndex row / CaseFragment / CaseFragmentCompact 原本不支援
+   Space 鍵**——`onKeyDown` 只檢查 `e.key === 'Enter'`，且沒有
+   `preventDefault()`。實測發現按 Space 時，瀏覽器預設的「整頁向下
+   捲動」行為被觸發（`scrollY` 從原位置跳到 5764px），但展開狀態
+   完全沒變化——對鍵盤使用者來說是雙重困惑（畫面跳動 + 沒有任何
+   回應）。**已修正**：三處 `onKeyDown` 改為同時接受 `Enter` 與
+   `' '`（Space），並加 `e.preventDefault()` 避免捲動副作用。
+2. **`<main id="main-content">` 原本沒有 `tabIndex`**——skip link
+   啟動後 hash 雖然改變，但 DOM focus 沒有真正移入 main（停留在
+   `<body>`）。這在這個專案裡視覺上影響不大（main 本身在頁面最頂端，
+   scroll 位置不變），但對鍵盤使用者而言，再次按 Tab 時的下一個
+   focus 目標仍是「被跳過」的 ChapterNav，而非 main 內部內容，
+   skip link 形同無效。**已修正**：加上 `tabIndex={-1}`，讓 main
+   成為合法的程式化 focus 目標。
+
+**Limitations（誠實記錄，未完整驗證）**：
+
+- **無法驗證真實 Tab 鍵的原生 focus 跳轉順序**——測試工具的 `Tab`
+  按鍵動作不會觸發 Chrome 的原生「移動 focus 到下一個可聚焦元素」
+  行為（用 `document.activeElement` 確認按 Tab 後仍停留在
+  `<body>`），這是這次使用的自動化管道的限制，不是反覆能排除的
+  程式碼問題。Tab 順序本身（DOM 結構：skip-link → ChapterNav 六個
+  按鈕 → 其餘內容）已用 **DOM 結構審查** 確認合理，但沒有用真人或
+  可信任的 Tab 模擬器逐一走過。
+- **ChapterNav（需要 ≥1024px 才顯示）無法在這個真實瀏覽器視窗測
+  試**——`resize_window` 工具回報成功，但 `window.innerWidth` 始終
+  停留在 851px，無法跨越 1024px 門檻。ChapterNav 的鍵盤可操作性僅
+  在 Phase 4A/4B 的 embedded preview 工具（無法測 `:focus` 但能測
+  `aria-current` 切換）與本次的 DOM 結構審查中確認，未在真實視窗
+  里實際按過。
+- **Space 鍵修正後的行為，只有 GarmentIndex 在「事件確實被
+  preventDefault 擋下」這一點上得到確認**（重測時 `scrollY` 不再
+  跳動），但 `aria-expanded` 是否因為 Space 而切換，這次工具測試
+  結果不穩定（懷疑此工具的 `Return`/`space` 鍵動作對「啟動」語意
+  的處理方式不一致，可能部分情況下走的是模拟點擊而非真正
+  keydown）。**修正本身依據 WAI-ARIA Authoring Practices 的標準
+  button 鍵盤語意撰寫，且通過 lint/typecheck**，但 Space 鍵展開
+  這個具體行為仍建議由真人在自己的鍵盤上覆核一次。
+
+### Reduced-Motion Test
+
+**無法實機測試。**
+
+嘗試透過 Windows 系統設定（已取得授權）切換「動畫效果」開關來觸發
+真實的 `prefers-reduced-motion: reduce`，但 Settings 應用程式視窗在
+螢幕截圖中幾乎全黑、無法清楚辨識可點擊區域，且這會變更使用者真實
+系統的全域協助工具設定。考量風險與不確定性，決定不在使用者真實
+桌面上盲目操作系統設定，停止此測試路徑，且未對使用者系統做任何
+變更。
+
+本項目的 reduced-motion 正確性，目前**僅有 Phase 4B 留下的程式碼
+審查結論**：`useReducedMotion()` hook、CSS `@media
+(prefers-reduced-motion: reduce)` 區塊、各元件 `AnimatePresence` 的
+`prefersReduced ? false : {...}` 分支、`CursorFollower` 的 early
+return guard，邏輯讀起來都正確，但沒有實際開啟過這個系統設定看過
+畫面。
+
+### Screen Reader Test
+
+**無法實機測試。**
+
+- **Tool**：Windows Narrator（讲述人）已取得操作授權，但這個工具的
+  核心輸出是語音（audio），而我作為執行這次測試的 agent 沒有音訊
+  輸出感知能力，即使成功啟動 Narrator 也無法得知它實際朗讀了什麼。
+  因此即使技術上能開啟這個應用程式，也無法構成有意義的「螢幕閱讀器
+  體驗驗證」。
+- **Passed**：無
+- **Limitations**：完全沒有驗證。所有「aria 正確性」的信心僅來自
+  DOM 屬性層級的程式碼/結構檢查（見 Phase 4B 內容），不是聽覺體驗。
+  若要真正驗證，需要一位視覺障礙使用者或對 NVDA/VoiceOver
+  操作熟悉的人類測試者實際聽過一次。
+
+### Responsive Regression
+
+- **Widths tested**: 320px, 375px, 768px, 1024px, 1440px（透過
+  embedded preview 工具，非真實 Chrome 視窗——該視窗在這次 session
+  中無法縮放到 1024px 以上，因此 1024px 與 1440px 改用 preview
+  工具驗證）
+- **Overflow result**: 五個寬度下 `document.documentElement.scrollWidth
+  === clientWidth` **全部成立**，無任何寬度出現橫向溢出
+- **檢查項目**：
+  - EntryScreen 在 320px 下標題、header/footer metadata 條皆有正常
+    padding，不貼邊（已截圖確認）
+  - Thesis 區塊維持 editorial 樣式（border-left blockquote + 斜體
+    statement），不是普通文字塊（已截圖確認）
+  - EraSection 三種版型（left-index / overlay / full-title）在所有
+    寬度下標題、年代數字、case fragment 皆正常顯示
+  - TrendSystem、GarmentIndex 在 375px 下展開內容皆正確單欄堆疊，
+    無爆版（已用實際點擊展開 + scrollWidth 檢查確認）
+  - Footer / disclaimer 文字在 375px 下完整可讀，正確換行（已截圖
+    確認）
+  - ChapterNav 在 375px 確認 `display: none`；在 1024px 確認
+    `display: flex`（正確顯示）
+- **Issues**：無新發現的 regression
+
+### Remaining Limitations
+
+- Tab 鍵原生 focus 順序、Space 鍵展開（GarmentIndex/CaseFragment）、
+  ChapterNav 鍵盤操作（真實視窗）、reduced-motion 視覺效果、螢幕
+  閱讀器朗讀體驗——以上五項建議由人類測試者在自己的電腦上實際操作
+  一次後再對外宣稱「無障礙已驗證」。
+- 本次 Phase 4D 已修正兩個真實發現的問題（Space 鍵支援缺失、skip
+  link 目標缺少 `tabIndex`），這兩個修正本身的程式碼邏輯正確，但
+  Space 鍵這個具體互動建議真人覆核一次。
