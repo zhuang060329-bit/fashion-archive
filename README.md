@@ -89,6 +89,5 @@ the data files; see [CREDITS.md](./CREDITS.md).
   exact limitations
 - No external brand imagery committed
 - Static Next.js site — no database / CMS / auth
-- Not yet deployed; deployment-readiness checks are in progress
-- Latest commit: `c7078fddbb277b267477a74f32c6e92ddbddf32c`
-  ("打磨時尚檔案網站視覺細節")
+- Not yet deployed; this reflects the latest verified local checkpoint
+  on `master` — see `git log` for the exact commit
