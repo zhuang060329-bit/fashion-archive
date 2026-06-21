@@ -386,3 +386,53 @@ production verified、mobile experience completed。以上四項皆未達成，
 
 **明確不宣稱**：production verified、accessibility fully verified、
 screen reader verified。以上三項在 Phase 6E 仍未達成。
+
+---
+
+## Phase 6H / 6I — Production Verification Section
+
+> 以下記錄 PR #1 merge 進 `main`（merge commit `c71da74`，v2 integration
+> commit `44483f0`）並部署到 `https://fashion-archive-chi.vercel.app/`
+> 之後，對**真實 production 環境**做的驗證。Phase 6I 額外修正了
+> production footer 過時文案（見下方）。
+
+- [x] Production URL 已顯示 v2（`curl` cache-busted 重新抓取確認：
+      無 `THESIS`、無 `POST-1970 FASHION` 等 v1 標記；`main-content`
+      id、`FASHION ARCHIVE` 標題、v2 footer 文字皆存在）
+- [x] Production `/v2-preview` 可用（HTTP 200，`v2-preview-content`
+      id 存在，footer 顯示 staging 文案）
+- [x] Production desktop smoke test passed（用真實 production server
+      + 真實瀏覽器截圖確認：EntryLab、1970s contrast-grid、2010s
+      signal-stack、MaterialBoard tray 皆正確渲染）
+- [x] No v1 dot cursor / ChapterNav observed（DOM 查詢確認 production
+      `/` 上沒有符合 v1 cursor 特徵的元素，沒有 v1 年代錨點連結；
+      `document.documentElement` 的 `cursor` 為 `none`，`ScannerCursor`
+      正常運作）
+- [x] Console / network clean（瀏覽器 console 無任何訊息，包含無
+      error、無 warning、無 hydration mismatch；54 筆 network 請求
+      全部是同網域靜態資源或 `data:image/svg+xml` inline 紋理）
+- [x] No external image requests（同上，network 清單逐筆檢查確認）
+- [x] Typecheck / lint / build passed（在 `main` 上重新跑
+      `npx tsc --noEmit`、`npm run lint`、`rm -rf .next && npm run build`，
+      三者皆通過）
+- [x] Footer wording fixed in Phase 6I（production footer 從
+      「MATERIAL ARCHIVE V2 — LOCAL INTEGRATION BUILD, NOT YET DEPLOYED」
+      改為「MATERIAL ARCHIVE V2 — PRODUCTION BUILD」，移除已經不準確的
+      「not yet deployed」措辭；`/v2-preview` 的 staging 文案不變）
+- [x] Screen reader not fully manually tested（與 v1、Phase 6D/6E 相同
+      限制；部署到 production 並未改變這個驗證缺口）
+
+**Mobile fallback verification limitation（如實記錄證據鏈，不誇大）**：
+
+`useDesktopViewport`/`DesktopOnlyGate` 的邏輯本身已在本地 dev viewport
+（375×812）對 `/` 與 `/v2-preview` 驗證通過：正確顯示 `DesktopOnlyGate`、
+`main-content`/`v2-preview-content` 不存在、無水平溢出。但因為瀏覽器
+自動化工具（`resize_window`）在已連接的真實 Chrome 分頁上對視窗縮放
+無效（已知工具限制，非程式碼問題），**尚未在 production URL 上用真機
+或真實窄視窗瀏覽器直接看過畫面**。這個限制與「程式碼邏輯未變、且已在
+其他環境驗證過」是兩件不同的事，**不寫成 mobile experience completed
+或 production mobile fully verified**，因為這兩句都還沒有真正達成。
+
+**明確不宣稱**：accessibility fully verified、screen reader verified、
+mobile experience completed、production mobile fully verified。以上
+四項皆未達成。

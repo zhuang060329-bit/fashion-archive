@@ -1,11 +1,12 @@
 'use client'
 
-// 共用 v2 homepage body，由 `/`（production，Phase 6E 接入後）與
-// `/v2-preview`（staging/comparison route）共用，避免兩處內容各自
-// 維護一份、互相漂移。mode prop 只影響 <main> 的 id（production 需要
-// 對齊 layout.tsx 的 skip-link 目標 `#main-content`）與 footer 文案
-// （production 不應顯示「prototype / not the production homepage」
-// 這類過時措辭，preview 則維持 staging 語意）。
+// 共用 v2 homepage body，由 `/`（production，Phase 6E 接入、Phase 6H
+// 已正式部署）與 `/v2-preview`（staging/comparison route）共用，避免
+// 兩處內容各自維護一份、互相漂移。mode prop 只影響 <main> 的 id
+// （production 需要對齊 layout.tsx 的 skip-link 目標 `#main-content`）
+// 與 footer 文案（production 顯示「PRODUCTION BUILD」，preview 維持
+// staging 語意——production 不應再出現「not yet deployed」這類已經
+// 過時的措辭）。
 
 import { useEffect } from 'react'
 import { useDesktopViewport } from '@/hooks/useDesktopViewport'
@@ -57,7 +58,7 @@ export function V2Home({ mode }: V2HomeProps) {
         >
           {mode === 'production' ? (
             <p className="type-mono-xs" style={{ color: 'var(--color-archive-600)' }}>
-              MATERIAL ARCHIVE V2 — LOCAL INTEGRATION BUILD, NOT YET DEPLOYED
+              MATERIAL ARCHIVE V2 — PRODUCTION BUILD
             </p>
           ) : (
             <p className="type-mono-xs" style={{ color: 'var(--color-archive-600)' }}>

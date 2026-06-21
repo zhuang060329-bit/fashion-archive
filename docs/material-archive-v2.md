@@ -1,10 +1,22 @@
 # Material Archive v2 — Integration Notes
 
-> **Phase 6E 狀態：v2 已在 feature branch `redesign/material-archive-v2`
-> 本地接入正式首頁（`src/app/page.tsx`）。** 這只是 feature branch 上的
-> 本地整合，**尚未 push、尚未 deploy、尚未 merge main**，也因此尚未做過
-> 真正的 production smoke test——以下任何「已驗證」字樣，指的都是本地
-> dev/build 環境的驗證，不是線上環境驗證。
+> **Phase 6I 狀態：v2 已正式部署到 production。**
+>
+> - Production URL：`https://fashion-archive-chi.vercel.app/`
+> - Merge commit（`main`）：`c71da74`
+> - v2 integration commit：`44483f0`
+> - PR：[#1 Redesign Fashion Archive as Material Lab v2](https://github.com/zhuang060329-bit/fashion-archive/pull/1)（已 merge）
+>
+> Production verification（Phase 6H）已完成：desktop smoke test（用真實
+> production server + 真實瀏覽器，確認 EntryLab / 1970s / 2010s /
+> MaterialBoard 皆正確渲染）、console/network 檢查（無 error、無外部
+> 圖片請求）、無 v1 cursor/ChapterNav 殘留。**Mobile fallback 的驗證
+> 鏈**：邏輯本身（`useDesktopViewport`/`DesktopOnlyGate`）在本地 dev
+> viewport（375×812）下對 `/` 與 `/v2-preview` 皆驗證通過且無溢出；
+> 因瀏覽器自動化工具的視窗縮放限制，**尚未在 production URL 上用真機
+> 或真實窄視窗瀏覽器直接驗證**——這不等於「mobile experience
+> completed」，僅代表程式碼邏輯層級已驗證、production 上的真實視覺
+> 還待人工確認。
 >
 > `/v2-preview` 路由刻意保留，現在的角色是「跟正式首頁共用同一份
 > `V2Home` 元件、但獨立存在」的 staging / comparison 路由，方便日後
@@ -12,8 +24,8 @@
 >
 > v1 舊元件（`EntryScreen` / `EraSection` / `TrendSystem` /
 > `GarmentIndex` / `CursorFollower` / `ChapterNav`）**全部保留**在
-> `src/components/`，只是不再被任何路由引用；清理留給 Phase 6F，
-> Phase 6E 不執行刪除。
+> `src/components/`，只是不再被任何路由引用；**cleanup 尚未執行**，
+> 且只會在使用者明確核准後才進行。
 
 ---
 
@@ -147,25 +159,29 @@ material tray 容器邏輯、年代專屬的視覺系統），因此以全新元
 - **不得宣稱「accessibility fully verified」或「production verified」**
   ——以上限制是明確聲明，非待補充的小事項。
 
-## 8. Production 接入狀態（Phase 6E 更新）
+## 8. Production 部署狀態（Phase 6I 更新）
 
-**已完成（本地 feature branch）**：
+**已完成**：
 
-- [x] Homepage replacement 已在 `redesign/material-archive-v2`
-      本地完成（`src/app/page.tsx` → `V2Home mode="production"`）
+- [x] Homepage replacement（`src/app/page.tsx` → `V2Home mode="production"`）
 - [x] `RouteScopedChrome` 已更新為 v2-route 判斷邏輯，`/` 與
       `/v2-preview` 皆確認無 v1 舊版 cursor/nav 殘留
+- [x] PR #1 已 merge 進 `main`（merge commit `c71da74`）
+- [x] `main` 已 push 到 GitHub，Vercel production 已自動部署
+- [x] Production smoke test 已完成（desktop，真實 production server +
+      真實瀏覽器；console/network 乾淨；無外部圖片請求）
+- [x] Production footer 文案已修正（Phase 6I，移除過時的
+      「NOT YET DEPLOYED」措辭，改為「PRODUCTION BUILD」）
 - [x] `npx tsc --noEmit` / `npm run lint` / `npm run build` 已在
-      Phase 6E 重新跑過，三者皆通過
-- [x] Mobile fallback 已在 `/` 與 `/v2-preview` 兩個路由重新驗證
+      `main` 上重新跑過，三者皆通過
+- [x] Mobile fallback **邏輯**已在 `/` 與 `/v2-preview` 兩個路由的本地
+      dev viewport（375×812）重新驗證
 
-**仍待辦（Phase 6E 範圍外，需使用者核准後才進行）**：
+**Post-production follow-up（待辦，需使用者核准後才進行）**：
 
-- [ ] Push 到 remote（**本階段明確不執行**）
-- [ ] Deploy（**本階段明確不執行**）
-- [ ] Merge main（**本階段明確不執行**）
-- [ ] Production smoke test after deployment（只有在真正 push + deploy
-      之後才有意義，目前不適用）
+- [ ] 在 production URL 上用真機或真實瀏覽器窄視窗（非自動化工具）
+      直接人工確認 mobile fallback 畫面，補齊上面提到的驗證鏈缺口
 - [ ] 真實瀏覽器人工螢幕閱讀器測試（NVDA/VoiceOver，沿用 v1 既有限制）
-- [ ] Phase 6F：v1 舊元件清理（本文件第 1 段已聲明 Phase 6E 不執行
-      刪除，留給 Phase 6F 評估後再做）
+- [ ] v1 舊元件清理（本文件多次聲明：cleanup 尚未執行，且只在使用者
+      明確核准後才進行——不是這份文件能單方面決定的事）
+- [ ] README/QA 後續微調（如果上述真機驗證發現問題）
