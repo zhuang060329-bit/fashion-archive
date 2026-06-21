@@ -3,6 +3,7 @@ import { cormorant, ibmMono } from '@/lib/fonts'
 import { SmoothScrollProvider } from '@/providers/SmoothScrollProvider'
 import { CursorFollower } from '@/components/CursorFollower'
 import { ChapterNav } from '@/components/ChapterNav'
+import { RouteScopedChrome } from '@/components/v2/RouteScopedChrome'
 import './globals.css'
 
 const SITE_TITLE = 'Fashion Archive — Post-1970 Trend Intelligence'
@@ -46,8 +47,10 @@ export default function RootLayout({
         {/* Scanline overlay — position:fixed, --z-scanline */}
         <div className="scanline-layer" aria-hidden="true" />
 
-        <CursorFollower />
-        <ChapterNav />
+        <RouteScopedChrome>
+          <CursorFollower />
+          <ChapterNav />
+        </RouteScopedChrome>
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>
