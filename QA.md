@@ -577,3 +577,34 @@ activeElement / matchMedia）做 smoke check。
 mobile experience completed、WCAG fully verified。Phase 7A 只是
 contrast/readability pass、cursor behavior review/adjust、keyboard focus
 improvement，**螢幕閱讀器仍未完整人工測試**。
+
+### Phase 7A-2 — Visible color / typography delta
+
+> Phase 7A 的 accent 只進到小元件（pin / 年份字 / hover 邊框），截圖第一眼
+> 兩個年代仍是同一套 warm-black 鷹架。7A-2 把 accent / 溫度抬到 section
+> 背景、卡片底、header 層級，讓 1970s 與 2010s 第一眼可分辨。**純視覺
+> color/typography delta，不動 layout、不加動畫、不擴內容、不改 a11y 宣稱。**
+
+- [x] Per-era section surface：1970s 暖琥珀底 `#15110A`（computed
+      rgb(21,17,10)）、2010s 冷鋼灰底 `#0C0E13`（computed rgb(12,14,19)）；
+      卡片底同步 1970s 暖 `#1B150C` / 2010s 冷 `#101319`——取代兩段共用
+      archive-black/900。before/after computed 背景色實測對比確認。
+- [x] Accent 進入 header：每段加 `.era-tab`（accent 色標）+
+      `.era-title-rule`（標題下 accent 細規線）。
+- [x] 卡片靜止狀態就有 accent 邊：1970s 卡片 amber top border、2010s 卡片
+      red left border（不再只在 hover 才有顏色）。
+- [x] `--line-color` 一併 scope 成 era 色調（cutting-guide / ruler /
+      section 邊框吃到年代溫度）；2010s 走「冷介面 + 紅訊號」，氛圍 wash
+      用冷鋼灰、紅保留給 signal 元件。
+- [x] before/after 截圖（desktop 1280×900，凍結動畫後擷取）顯示 1970s 暖
+      琥珀 vs 2010s 冷鋼灰+紅，第一眼可分辨。
+- [x] 工程驗證：`npx tsc --noEmit` / `npm run lint` /
+      `rm -rf .next && npm run build` 三者通過；flip card 鍵盤焦點、cursor
+      gate、mobile fallback（系統游標保留）於乾淨重啟 server 複測仍正常，
+      console 無 error。
+- MaterialBoard / EntryLab 維持中性 archive-black（material table 刻意中性，
+      未套 era 溫度）。
+
+**Phase 7A-2 同樣不宣稱**：accessibility fully verified / screen reader
+verified / mobile experience completed / WCAG fully verified。這是視覺
+色彩層級的修正，不改變既有 a11y 驗證缺口。

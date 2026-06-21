@@ -273,3 +273,20 @@ mobile experience completed**。
 **仍未完成（沿用既有限制）**：螢幕閱讀器人工測試尚未完整進行，
 **不得宣稱 accessibility fully verified / screen reader verified /
 mobile experience completed / WCAG fully verified**。
+
+### Phase 7A-2 — visible color delta
+
+Phase 7A 的 accent 只在小元件，截圖第一眼分不出兩個年代。7A-2 把 accent /
+溫度抬到 section 背景 + 卡片底 + header：
+
+- **Per-era surface**：1970s 暖琥珀底（#15110A）、2010s 冷鋼灰底（#0C0E13），
+  卡片底同步暖/冷；取代兩段共用的 archive-black/900 鷹架。
+- **Atmosphere wash**：每段頂緣單向 era wash（1970s 暖琥珀、2010s 冷鋼灰，
+  非置中 blob、非霓虹）。
+- **Header accent**：`.era-tab` 色標 + `.era-title-rule` 標題下 accent 規線。
+- **Card accent at rest**：1970s amber top border、2010s red left border。
+- **`--line-color`** scope 成 era 色調（cutting-guide / ruler / 邊框吃到溫度）。
+- MaterialBoard / EntryLab 維持中性 archive-black。
+
+純視覺 color/typography delta，不動 layout、不加動畫、不擴內容。工程驗證
+（tsc / lint / build）通過；不改變既有 a11y / mobile / screen reader 限制。

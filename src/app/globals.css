@@ -1212,4 +1212,62 @@ body.v2-lab-scope::-webkit-scrollbar-thumb:hover {
   background: var(--color-archive-500);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   PHASE 7A-2 — PER-ERA SURFACE IDENTITY
+   把 era accent 從小元件（pin / 年份字 / hover 邊框）抬到 section +
+   card + 背景層級。1970s = 暖琥珀 aged-paper；2010s = 冷鋼灰介面 + 紅
+   訊號。目的是讓兩段在「截圖第一眼」就能分辨，同時維持暗色 lab 質感，
+   不做霓虹、不做置中 gradient blob、不做粒子。
+   變數（--era-surface / --era-wash / --era-card-bg / --era-line）由
+   EraLabSection 依 variant 注入，--era-accent 來自 era 資料。
+   ───────────────────────────────────────────────────────────── */
+
+/* 整個年代區塊換成帶 era 溫度的暗底，取代共用的 archive-black 鷹架 */
+.era-scope {
+  background-color: var(--era-surface, var(--color-archive-black));
+  isolation: isolate;
+}
+
+/* 大面積氛圍層：頂緣單向 wash（不是置中 blob），讓 accent 真正佔到
+   背景面積。1970s 暖琥珀、2010s 冷鋼灰，皆極低彩度疊在暗底上 */
+.era-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--era-wash) 0%, transparent 42%);
+}
+
+/* section 頂部的歸檔色標——像檔案夾邊緣的彩色 tab，一進區塊就標明年代色 */
+.era-tab {
+  height: 3px;
+  width: clamp(72px, 13vw, 168px);
+  background: var(--era-accent);
+}
+
+/* 年代標題下的 accent 細規線，把 accent 帶進 header 主視覺而非只在小標籤 */
+.era-title-rule {
+  height: 1px;
+  width: 100%;
+  max-width: 40rem;
+  background: linear-gradient(90deg, var(--era-accent), transparent 78%);
+  opacity: 0.7;
+}
+
+/* 年代區塊內的標本卡：帶 era 溫度的底 + 靜止狀態就有的 accent 邊，
+   不再是所有 board 共用同一張 archive-900 暗卡。hover/lock 的更亮 accent
+   邊由既有 .specimen-card:hover 規則接手（specificity 較高的內聯 accent
+   仍在），這裡只負責「靜止時就看得到年代色」 */
+.era-scope .specimen-card {
+  background: var(--era-card-bg, var(--color-archive-900));
+}
+
+.era-warm .specimen-card {
+  border-top: 2px solid color-mix(in oklab, var(--era-accent) 78%, transparent);
+}
+
+.era-cold .specimen-card {
+  border-left: 2px solid color-mix(in oklab, var(--era-accent) 72%, transparent);
+}
+
 

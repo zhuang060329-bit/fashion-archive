@@ -41,6 +41,27 @@ export function EraLabSection({ era, variant }: EraLabSectionProps) {
   const cases = getCasesByEra(era.id).slice(0, MAX_CASES)
   const accentColor = era.colorProfile.accent ?? 'var(--color-archive-400)'
 
+  // Phase 7A-2：per-era surface 溫度。contrast-grid（1970s）= 暖琥珀 aged
+  // paper；signal-stack（2010s）= 冷鋼灰介面（紅由 accent 訊號元件負責）。
+  // 這些值把 accent / 溫度抬到 section 背景、卡片底、線條色，讓兩段在
+  // 截圖第一眼可分辨，而不是只在小元件上有顏色。--line-color 一併 scope
+  // 成 era 色調，連 cutting-guide、ruler、section 邊框都吃到年代溫度。
+  const surfaceVars =
+    variant === 'contrast-grid'
+      ? {
+          '--era-surface': '#15110A',
+          '--era-wash': 'color-mix(in oklab, var(--era-accent) 12%, transparent)',
+          '--era-card-bg': '#1B150C',
+          '--line-color': '#2A2113',
+        }
+      : {
+          '--era-surface': '#0C0E13',
+          '--era-wash': 'rgba(86, 104, 124, 0.11)',
+          '--era-card-bg': '#101319',
+          '--line-color': '#1B202A',
+        }
+  const scopeClass = variant === 'contrast-grid' ? 'era-warm' : 'era-cold'
+
   useGSAP(
     () => {
       if (prefersReduced) return
@@ -70,14 +91,20 @@ export function EraLabSection({ era, variant }: EraLabSectionProps) {
     <section
       ref={containerRef}
       id={`era-lab-${era.id}`}
-      className="relative px-6 py-20 md:px-10 md:py-28"
-      style={{ '--era-accent': accentColor, borderTop: '1px solid var(--line-color)' } as React.CSSProperties}
+      className={`era-scope ${scopeClass} relative px-6 py-20 md:px-10 md:py-28`}
+      style={{ '--era-accent': accentColor, ...surfaceVars, borderTop: '1px solid var(--line-color)' } as React.CSSProperties}
       aria-label={`Material board: ${era.period}`}
     >
+      {/* era 氛圍層——大面積 accent/溫度 wash，把年代色帶進背景主視覺 */}
+      <div className="era-atmosphere" aria-hidden="true" />
+
       {/* pattern-cutting guide 浮水印——非裝飾性漸層，是「縫紙樣格線」語彙 */}
       <div className="lab-cutting-guide" aria-hidden="true" />
 
       <div className="relative z-10">
+        {/* 歸檔色標 tab——一進區塊就用 era accent 標明年代色 */}
+        <div className="era-tab lab-board-meta mb-5" aria-hidden="true" />
+
         <div className="lab-board-meta mb-4 flex items-baseline gap-6">
           <span className="type-mono-xs" style={{ color: 'var(--era-accent)' }}>
             {era.caseIndex}
@@ -93,6 +120,8 @@ export function EraLabSection({ era, variant }: EraLabSectionProps) {
         <h2 className="lab-board-meta type-chapter mb-3" style={{ maxWidth: '40rem' }}>
           {era.title}
         </h2>
+        {/* accent 細規線——把年代色帶進標題主視覺 */}
+        <div className="era-title-rule lab-board-meta mb-6" aria-hidden="true" />
         <p className="lab-board-meta type-statement mb-12" style={{ maxWidth: '32rem' }}>
           {era.statement}
         </p>
