@@ -10,13 +10,20 @@
 > Production verification（Phase 6H）已完成：desktop smoke test（用真實
 > production server + 真實瀏覽器，確認 EntryLab / 1970s / 2010s /
 > MaterialBoard 皆正確渲染）、console/network 檢查（無 error、無外部
-> 圖片請求）、無 v1 cursor/ChapterNav 殘留。**Mobile fallback 的驗證
-> 鏈**：邏輯本身（`useDesktopViewport`/`DesktopOnlyGate`）在本地 dev
-> viewport（375×812）下對 `/` 與 `/v2-preview` 皆驗證通過且無溢出；
-> 因瀏覽器自動化工具的視窗縮放限制，**尚未在 production URL 上用真機
-> 或真實窄視窗瀏覽器直接驗證**——這不等於「mobile experience
-> completed」，僅代表程式碼邏輯層級已驗證、production 上的真實視覺
-> 還待人工確認。
+> 圖片請求）、無 v1 cursor/ChapterNav 殘留。
+>
+> **Mobile fallback：production 已人工驗證（Phase 6J）。** 使用者親自
+> 用真機手機 / WeChat browser 開啟 `https://fashion-archive-chi.vercel.app/`，
+> 截圖確認 `<1024px` 正確顯示 desktop-required fallback（`FASHION
+> ARCHIVE` / `MODE: MATERIAL LAB` / `VIEWPORT: INSUFFICIENT` / "This
+> archive is designed for desktop inspection." / `REQUIRED: DESKTOP /
+> LARGE TABLET` / `MIN WIDTH: 1024PX` / editorial disclaimer），畫面上
+> 沒有出現完整 v2 互動內容、沒有 `ScannerCursor`，呈現是設計過的提示
+> 頁而非錯誤頁，沒有明顯水平溢出。**這驗證的是 fallback 畫面本身，
+> 不是完整 mobile 互動體驗**——v2 在 `<1024px` 刻意不提供完整 mobile
+> archive 互動，這個 desktop-only 策略維持不變，是設計決定不是缺漏。
+> `/v2-preview` 共用同一份 `V2Home`/`useDesktopViewport` 邏輯，未單獨
+> 在真機上覆測，但程式碼路徑與已驗證的 `/` 完全相同。
 >
 > `/v2-preview` 路由刻意保留，現在的角色是「跟正式首頁共用同一份
 > `V2Home` 元件、但獨立存在」的 staging / comparison 路由，方便日後
@@ -176,12 +183,14 @@ material tray 容器邏輯、年代專屬的視覺系統），因此以全新元
       `main` 上重新跑過，三者皆通過
 - [x] Mobile fallback **邏輯**已在 `/` 與 `/v2-preview` 兩個路由的本地
       dev viewport（375×812）重新驗證
+- [x] **Mobile fallback 已在 production URL 上由使用者人工驗證
+      （Phase 6J）**——真機手機 / WeChat browser 截圖確認 `<1024px`
+      正確顯示 fallback 畫面，非完整 v2 互動頁，無明顯破版。驗證對象
+      是 `/`；`/v2-preview` 共用相同程式碼路徑但未單獨在真機覆測。
 
 **Post-production follow-up（待辦，需使用者核准後才進行）**：
 
-- [ ] 在 production URL 上用真機或真實瀏覽器窄視窗（非自動化工具）
-      直接人工確認 mobile fallback 畫面，補齊上面提到的驗證鏈缺口
 - [ ] 真實瀏覽器人工螢幕閱讀器測試（NVDA/VoiceOver，沿用 v1 既有限制）
 - [ ] v1 舊元件清理（本文件多次聲明：cleanup 尚未執行，且只在使用者
       明確核准後才進行——不是這份文件能單方面決定的事）
-- [ ] README/QA 後續微調（如果上述真機驗證發現問題）
+- [ ] README/QA 後續微調（如果之後發現新問題）

@@ -421,18 +421,30 @@ screen reader verified。以上三項在 Phase 6E 仍未達成。
       「not yet deployed」措辭；`/v2-preview` 的 staging 文案不變）
 - [x] Screen reader not fully manually tested（與 v1、Phase 6D/6E 相同
       限制；部署到 production 並未改變這個驗證缺口）
+- [x] **Production mobile fallback manually verified by user（Phase 6J）**
+      ——使用者親自用真機手機 / WeChat browser 打開
+      `https://fashion-archive-chi.vercel.app/`，截圖確認 `<1024px`
+      顯示 desktop-required fallback（`FASHION ARCHIVE` /
+      `MODE: MATERIAL LAB` / `VIEWPORT: INSUFFICIENT` /
+      "This archive is designed for desktop inspection." /
+      `REQUIRED: DESKTOP / LARGE TABLET` / `MIN WIDTH: 1024PX` /
+      editorial disclaimer），畫面上沒有出現完整 EntryLab /
+      EraLabSection / MaterialBoard，沒有出現 `ScannerCursor`，畫面
+      呈現像是刻意設計過的提示頁，不像錯誤頁或破版，沒有明顯水平溢出
 
-**Mobile fallback verification limitation（如實記錄證據鏈，不誇大）**：
+**Mobile fallback verification 現況（補上人工驗證後，仍維持克制措辭）**：
 
-`useDesktopViewport`/`DesktopOnlyGate` 的邏輯本身已在本地 dev viewport
-（375×812）對 `/` 與 `/v2-preview` 驗證通過：正確顯示 `DesktopOnlyGate`、
-`main-content`/`v2-preview-content` 不存在、無水平溢出。但因為瀏覽器
-自動化工具（`resize_window`）在已連接的真實 Chrome 分頁上對視窗縮放
-無效（已知工具限制，非程式碼問題），**尚未在 production URL 上用真機
-或真實窄視窗瀏覽器直接看過畫面**。這個限制與「程式碼邏輯未變、且已在
-其他環境驗證過」是兩件不同的事，**不寫成 mobile experience completed
-或 production mobile fully verified**，因為這兩句都還沒有真正達成。
+`useDesktopViewport`/`DesktopOnlyGate` 的邏輯先前已在本地 dev viewport
+（375×812）對 `/` 與 `/v2-preview` 驗證通過；Phase 6J 由使用者在真實
+production URL 上用真機/WeChat browser 完成了人工驗證，確認 fallback
+畫面本身在 `<1024px` 正確顯示、且不是完整 v2 互動頁。**這驗證的是
+fallback 畫面本身正確顯示，不是完整的 mobile 互動體驗**——v2 在
+`<1024px` 刻意不提供完整的 mobile archive 互動內容，這是設計決定，
+不是這次驗證要去測試的對象。`/v2-preview` 的 mobile fallback 邏輯與
+`/` 完全共用同一份 `V2Home`/`useDesktopViewport` 程式碼，未單獨用真機
+在 `/v2-preview` 上覆測，但程式碼邏輯與已驗證的 `/` 完全相同。
 
 **明確不宣稱**：accessibility fully verified、screen reader verified、
-mobile experience completed、production mobile fully verified。以上
-四項皆未達成。
+mobile experience completed、production mobile fully verified（這次
+驗證的是 fallback 畫面正確顯示，不是「完整 mobile 體驗已驗證」）。
+以上四項仍未達成。
