@@ -448,3 +448,34 @@ fallback 畫面本身正確顯示，不是完整的 mobile 互動體驗**——v
 mobile experience completed、production mobile fully verified（這次
 驗證的是 fallback 畫面正確顯示，不是「完整 mobile 體驗已驗證」）。
 以上四項仍未達成。
+
+---
+
+## Phase 6K — v1 Dead Code Cleanup Verification
+
+> 移除已確認無 runtime import 的 v1 專屬元件後，重新驗證 v2 production
+> route 與 staging route 未受影響。詳細刪除清單見
+> [docs/material-archive-v2.md](./docs/material-archive-v2.md) 第 9 節。
+
+- [x] v1 components removed only after import audit（先用 grep 確認
+      `EntryScreen` / `EraSection` / `TrendSystem` / `GarmentIndex` /
+      `CursorFollower` / `ChapterNav` 在 `src` runtime 已無任何
+      `import` / JSX 使用，僅剩註解，才刪除；`RouteScopedChrome` 因
+      唯一用途消失而連帶移除）
+- [x] `SourceMarker` 保留（v2 `EraLabSection` 仍 import 使用，非 v1-only）
+- [x] v2 production route 仍正常（本地 smoke：`/` 顯示 v2 homepage，
+      `h1` = `FASHION ARCHIVE`，`main#main-content` 存在，footer 為
+      `MATERIAL ARCHIVE V2 — PRODUCTION BUILD`，`ScannerCursor` 正常，
+      skip-link 仍指向 `#main-content`）
+- [x] `/v2-preview` 仍可用（`main#v2-preview-content` 存在，footer 為
+      staging 文案）
+- [x] Mobile fallback unaffected（375×812 下 `/` 顯示 `DesktopOnlyGate`，
+      `main-content` 不存在、無 `ScannerCursor`、`scrollWidth` 無溢出）
+- [x] No v1 dot cursor / ChapterNav（DOM 查詢確認 `/` 上無 v1 cursor
+      特徵元素、無 v1 年代錨點連結；console 無 error）
+- [x] Typecheck / lint / build passed（`npx tsc --noEmit`、
+      `npm run lint`、`rm -rf .next && npm run build` 三者皆通過）
+
+**明確不宣稱**：accessibility fully verified、screen reader verified、
+mobile experience completed。這次清理只移除 dead code，不改變上述任何
+既有驗證限制。

@@ -188,9 +188,61 @@ material tray 容器邏輯、年代專屬的視覺系統），因此以全新元
       正確顯示 fallback 畫面，非完整 v2 互動頁，無明顯破版。驗證對象
       是 `/`；`/v2-preview` 共用相同程式碼路徑但未單獨在真機覆測。
 
-**Post-production follow-up（待辦，需使用者核准後才進行）**：
+**Post-production follow-up**：
 
+- [x] v1 舊元件清理（已於 Phase 6K 執行，見下方第 9 節）
 - [ ] 真實瀏覽器人工螢幕閱讀器測試（NVDA/VoiceOver，沿用 v1 既有限制）
-- [ ] v1 舊元件清理（本文件多次聲明：cleanup 尚未執行，且只在使用者
-      明確核准後才進行——不是這份文件能單方面決定的事）
 - [ ] README/QA 後續微調（如果之後發現新問題）
+
+> 註：上面第 8 節「已完成」清單中提到的 `RouteScopedChrome`（Phase 6I
+> 當時的 v2-route 判斷邏輯）已於 Phase 6K 一併移除，原因見下節。
+
+## 9. Phase 6K — v1 Dead Code Cleanup
+
+- **執行 commit / 日期**：見本次 commit `chore: remove unused v1 archive
+  components`（push 到 `main`，由 Vercel 自動部署）。
+- **刪除前的 import audit**：以 grep 確認下列元件在 `src` runtime 中
+  不再被任何 `import` / JSX 使用（僅剩註解與文件提及），才執行刪除。
+
+**已刪除（v1-only，確認無 runtime import）**：
+
+- `src/components/EntryScreen.tsx`
+- `src/components/EraSection.tsx`
+- `src/components/TrendSystem.tsx`
+- `src/components/GarmentIndex.tsx`
+- `src/components/CursorFollower.tsx`
+- `src/components/ChapterNav.tsx`
+- `src/components/v2/RouteScopedChrome.tsx`（連帶移除——它原本唯一用途
+  是在 v2 路由隱藏 v1 的 `CursorFollower` / `ChapterNav`；兩者刪除且
+  `layout.tsx` 不再 import 任何 v1 chrome 後，這層包裝已無作用）
+- `src/app/globals.css` 內已無人引用的 z-index 變數 `--z-nav` /
+  `--z-chapter-nav`（僅 ChapterNav 用、零 `var()` 參照）
+
+**刻意保留（不是 v1-only，或屬內容資料）**：
+
+- `src/components/SourceMarker.tsx`——**v2 的 `EraLabSection` 仍 import
+  使用**，並非 v1 專屬，保留。
+- `src/components/v2/MisregisteredText.tsx`——v2 元件，保留。
+- `src/data/*`（`eras` / `cases` / `garments` / `trends` / `archive`、
+  `types.ts` 與所有 `sourceNotes`）——內容資料層，v2 沿用，全數保留。
+- `QA.md` / `CREDITS.md` / 本文件的歷史記錄——保留；文件中對已刪元件的
+  提及一律改寫為「已於 Phase 6K 移除」，不造成「仍存在」的錯覺。
+
+**`layout.tsx` 的變更**：移除 `CursorFollower` / `ChapterNav` /
+`RouteScopedChrome` 三個 import 與其 JSX 包裝；skip-link、`grain-layer`
+/`scanline-layer` 紋理層、`SmoothScrollProvider`（Lenis）、以及指向
+`#main-content` 的無障礙跳轉皆保留未動。
+
+**驗證**：`npx tsc --noEmit` / `npm run lint` /
+`rm -rf .next && npm run build` 三者皆通過；本地 smoke check 確認
+`/` 仍是 v2、`/v2-preview` 仍可用、footer 文案正確、mobile fallback
+code path（`DesktopOnlyGate`）未受影響、無 v1 cursor/ChapterNav、
+console 無 error。
+
+**為什麼 `/v2-preview` 仍保留**：作為跟正式首頁共用同一份 `V2Home`、
+但獨立存在的 staging / comparison 路由，方便日後比對 production 是否
+走偏。Phase 6K 不移除它；未來若要移除需使用者明確核准。
+
+**仍未完成（沿用既有限制）**：螢幕閱讀器人工測試尚未完整進行，
+**不得宣稱 accessibility fully verified / screen reader verified /
+mobile experience completed**。

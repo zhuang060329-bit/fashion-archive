@@ -1,9 +1,6 @@
 import type { Metadata } from 'next'
 import { cormorant, ibmMono } from '@/lib/fonts'
 import { SmoothScrollProvider } from '@/providers/SmoothScrollProvider'
-import { CursorFollower } from '@/components/CursorFollower'
-import { ChapterNav } from '@/components/ChapterNav'
-import { RouteScopedChrome } from '@/components/v2/RouteScopedChrome'
 import './globals.css'
 
 const SITE_TITLE = 'Fashion Archive — Post-1970 Trend Intelligence'
@@ -47,10 +44,9 @@ export default function RootLayout({
         {/* Scanline overlay — position:fixed, --z-scanline */}
         <div className="scanline-layer" aria-hidden="true" />
 
-        <RouteScopedChrome>
-          <CursorFollower />
-          <ChapterNav />
-        </RouteScopedChrome>
+        {/* v2（Material Lab）路由各自掛載自己的 ScannerCursor；舊版 v1
+            chrome（CursorFollower / ChapterNav）已於 Phase 6K 移除，
+            連帶不再需要 RouteScopedChrome 包裝層。 */}
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>

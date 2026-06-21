@@ -5,8 +5,8 @@ import { gsap } from '@/lib/gsap'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useIsCoarsePointer } from '@/hooks/useDesktopViewport'
 
-// v2 cursor 取代 Phase 5 的 dot follower（CursorFollower.tsx，保留未刪除）。
-// 識別邏輯：archive inspection tool，不是裝飾性跟隨點。
+// v2 cursor，取代舊版 v1 的 dot follower（CursorFollower，已於 Phase 6K
+// 移除）。識別邏輯：archive inspection tool，不是裝飾性跟隨點。
 //
 // 預設狀態：一個 28×28 的測量框（四個角括號）+ 貫穿視窗寬度的水平掃描細線，
 // 跟隨游標但用 GSAP ticker lerp 製造儀器延遲感，不是 1:1 跟隨。

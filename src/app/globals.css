@@ -66,8 +66,6 @@
 
   /* Semantic z-index scale */
   --z-content:     10;    /* in-section foreground layer, e.g. OverlayLayout text above era number */
-  --z-nav:         200;   /* ChapterNav */
-  --z-chapter-nav: 200;   /* alias, kept for existing references */
   --z-overlay:     400;   /* reserved for future modal/overlay surfaces */
   --z-texture:     800;   /* grain + scanline texture group */
   --z-grain:       800;

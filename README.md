@@ -15,10 +15,10 @@ The site presents six decades of fashion trends (1970s–2020s) as
 archival "specimens" — material boards, era lab sections, a scanner
 cursor — rather than a conventional blog or e-commerce layout. An
 earlier, more conventional accordion/chapter-nav presentation (v1)
-still exists in the codebase (`src/components/EntryScreen.tsx`,
-`EraSection.tsx`, `TrendSystem.tsx`, `GarmentIndex.tsx`, etc.) but is
-no longer mounted by any route; removal is a separate, explicitly
-approved cleanup step, not yet done.
+once lived alongside this in the codebase; its unused runtime
+components were removed in Phase 6K (see Current Status below). The
+underlying content data, source notes, and the shared `SourceMarker`
+component are retained and reused by v2.
 
 ## Tech Stack
 
@@ -27,7 +27,7 @@ approved cleanup step, not yet done.
 - Tailwind CSS v4 (CSS-first `@theme` tokens)
 - [GSAP](https://gsap.com/) + ScrollTrigger (`@gsap/react`) — scroll-driven reveal/parallax, scanner-cursor lock-on
 - [Lenis](https://github.com/darkroomengineering/lenis) — smooth scroll
-- [Motion](https://motion.dev/) (Framer Motion) — accordion expand/collapse (v1)
+- [Motion](https://motion.dev/) (Framer Motion) — used by the vendored Motion Primitives below
 - Motion Primitives `disclosure` / `text-effect` (vendored under `src/components/motion-primitives/`) — v2 text reveal
 - `clsx` + `tailwind-merge` (`src/lib/utils.ts` `cn()` helper)
 - Cormorant Garamond + IBM Plex Mono (`next/font/google`)
@@ -113,17 +113,21 @@ the data files; see [CREDITS.md](./CREDITS.md).
   for this experience, not an unfinished responsive pass.
 - `/v2-preview` is retained as a staging/comparison route, sharing the
   same `V2Home` component as `/`.
-- v1 (`EntryScreen` / `EraSection` / `TrendSystem` / `GarmentIndex` /
-  `CursorFollower` / `ChapterNav`) remains in the codebase, unmounted
-  from any route. Its own responsive/keyboard QA pass (documented in
-  [QA.md](./QA.md)) still describes that earlier version and is kept
-  for reference; it does not describe the current production page.
-- Manual QA has been partially run against [QA.md](./QA.md): desktop
-  smoke testing and keyboard activation (on v1) were checked in a real
-  browser; **screen-reader behavior has not been fully manually
-  verified** for either v1 or v2 — implemented per code review only.
-  See QA.md for the exact limitations; do not treat this as
-  accessibility-fully-verified.
+- **The unused v1 runtime components have been removed (Phase 6K):**
+  `EntryScreen`, `EraSection`, `TrendSystem`, `GarmentIndex`,
+  `CursorFollower`, `ChapterNav`, and the now-redundant
+  `RouteScopedChrome` wrapper. They were confirmed to have no runtime
+  import before deletion. `SourceMarker` was **kept** — it is imported
+  by the v2 `EraLabSection`. The underlying content (`src/data/*`),
+  source notes, QA history, and CREDITS are all retained.
+- Production mobile fallback was manually verified by the user on a
+  real mobile browser (`<1024px` shows the `DesktopOnlyGate` screen,
+  not the full v2 experience). This confirms the fallback screen, not
+  a full mobile interaction experience — the desktop-only strategy is
+  intentional.
+- **Screen-reader behavior has not been fully manually verified** —
+  implemented per code review only. See [QA.md](./QA.md) for the exact
+  limitations; do not treat this as accessibility-fully-verified.
 - No external brand imagery committed or fetched.
 - Static Next.js site — no database / CMS / auth / environment
   variables.
