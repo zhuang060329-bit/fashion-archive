@@ -58,7 +58,9 @@ export function DesktopOnlyGate() {
       </div>
 
       <footer className="flex flex-col gap-2 border-t pt-4" style={{ borderColor: 'var(--line-color)' }}>
-        <p className="type-mono-xs" style={{ color: 'var(--color-archive-600)' }}>
+        {/* Phase 7A 對比修正：disclaimer 從 archive-600 提到 #726E64，
+            手機 fallback 上的版權聲明不再接近隱形 */}
+        <p className="type-mono-xs" style={{ color: '#726E64' }}>
           Independent educational / editorial project. Not affiliated with
           any brand or designer referenced elsewhere in this archive.
         </p>

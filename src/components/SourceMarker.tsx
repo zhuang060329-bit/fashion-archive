@@ -50,7 +50,10 @@ export function SourceMarker({ confidence, source, size = 'default' }: SourceMar
         {label}
       </span>
       {size === 'default' && source && (
-        <span className="type-mono-xs break-word" style={{ color: 'var(--color-archive-700)' }}>
+        // Phase 7A 對比修正：原本 archive-700 (#252320) 疊在卡背 archive-800
+        // 上幾乎不可見（約 1.2:1）。提到 archive-400，來源出處變成可讀的
+        // 次要資訊，而不是裝飾性灰字
+        <span className="type-mono-xs break-word" style={{ color: 'var(--color-archive-400)' }}>
           {source}
         </span>
       )}

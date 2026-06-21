@@ -169,7 +169,9 @@ function GarmentSpecimen({
           <p className="type-statement lab-meta-primary" style={{ fontStyle: 'italic', fontSize: '0.76rem' }}>
             &ldquo;{garment.statement}&rdquo;
           </p>
-          <p className="type-statement lab-meta-primary" style={{ fontSize: '0.72rem' }}>
+          {/* Phase 7A：culturalFunction 改用 type-note typed-note 聲音，與上方
+              serif 斜體引言區隔，讓揭露後的兩段文字有不同閱讀節奏 */}
+          <p className="type-note">
             {garment.culturalFunction}
           </p>
           {garment.keyMoments[0] && (
@@ -183,7 +185,7 @@ function GarmentSpecimen({
           className="lab-meta-tertiary type-mono-xs absolute bottom-3 left-4"
           style={{ opacity: isActive ? 0 : 1, transition: 'opacity 0.2s' }}
         >
-          CLICK TO PEEL
+          LIFT SAMPLE
         </p>
       </div>
     </MaterialSpecimenCard>

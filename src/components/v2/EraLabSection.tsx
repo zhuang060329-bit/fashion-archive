@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap, useGSAP } from '@/lib/gsap'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { getCasesByEra } from '@/data/cases'
@@ -83,7 +83,7 @@ export function EraLabSection({ era, variant }: EraLabSectionProps) {
             {era.caseIndex}
           </span>
           <span className="type-mono-sm">{era.period}</span>
-          <span className="type-mono-xs" style={{ color: 'var(--color-archive-600)' }}>
+          <span className="type-mono-xs" style={{ color: '#726E64' }}>
             BOARD TYPE: {variant === 'contrast-grid' ? 'MATERIAL CONTRAST' : 'SIGNAL STACK'}
           </span>
         </div>
@@ -192,8 +192,12 @@ function SignalStackBoard({
   const [activeId, setActiveId] = useState<string | null>(null)
   const hasActive = activeId !== null
 
+  // Phase 7A：原本是 `PACKET 0x0001 RECEIVED · DROP #01 QUEUED` 這類重複的
+  // 假封包 filler，偏 SaaS status board。改成「archive signal annotation」——
+  // 每筆對應一個真實 case 標題，讀起來像在標註平台時代被歸檔的訊號，
+  // 不是假儀表板。signal / platform 語言保留，但不再是空轉的 packet 計數。
   const tickerItems = cases
-    .map((c, i) => `PACKET 0x${(i + 1).toString(16).toUpperCase().padStart(4, '0')} RECEIVED · DROP #${String(i + 1).padStart(2, '0')} QUEUED`)
+    .map((c, i) => `SIGNAL ${String(i + 1).padStart(2, '0')} LOGGED: ${c.title}`)
     .join('   ·   ')
 
   return (
@@ -246,7 +250,12 @@ function SignalRail({
 }: { cases: ReturnType<typeof getCasesByEra>; activeId: string | null }) {
   return (
     <div className="signal-rail pt-2" aria-hidden="true">
-      <p className="lab-meta-tertiary type-mono-xs mb-1">QUEUE DEPTH — {cases.length} PACKETS</p>
+      {/* Phase 7A：原本是 QUEUE DEPTH / PACKETS / IDLE / LOCKED / TRACE ACTIVE
+          的假儀表板語氣。改成 archive signal annotation——SIGNAL INDEX、
+          UNREAD / READING、ANNOTATING，保留平台時代的訊號層概念，但讀起來
+          是「歸檔訊號的閱讀狀態」而不是 SaaS status board。hex 位址保留，
+          因為它服務「每筆訊號有編號」的儀器感，不是空轉計數 */}
+      <p className="lab-meta-tertiary type-mono-xs mb-1">SIGNAL INDEX: {cases.length} ENTRIES</p>
       {cases.map((c, i) => {
         const isActive = activeId === c.id
         return (
@@ -256,14 +265,14 @@ function SignalRail({
           >
             <span>0x{(i + 1).toString(16).toUpperCase().padStart(4, '0')}</span>
             <span className={`signal-rail-trace ${isActive ? 'signal-rail-trace-active' : ''}`} />
-            <span>{isActive ? 'LOCKED' : 'IDLE'}</span>
+            <span>{isActive ? 'READING' : 'UNREAD'}</span>
           </div>
         )
       })}
       <div className="signal-rail-row mt-2">
-        <span>SCAN</span>
+        <span>READ</span>
         <span className="signal-rail-trace" />
-        <span>{activeId ? 'TRACE ACTIVE' : 'STANDBY'}</span>
+        <span>{activeId ? 'ANNOTATING' : 'STANDBY'}</span>
       </div>
     </div>
   )
@@ -298,8 +307,42 @@ function SpecimenFragment({
   // 蓋住文字。父層在 setActiveId 時也會幫整個 board 加
   // .has-active-specimen，讓其他卡片退後（見 globals.css isolation）
   const [fullContextOpen, setFullContextOpen] = useState(false)
+  const prefersReduced = useReducedMotion()
   const primarySource = caseItem.sourceNotes[0]
   const specimenState = getCaseSpecimenState(caseItem.type)
+
+  // Phase 7A 鍵盤焦點管理（flip card）：翻到背面後，外層卡片會退出 tab 順序
+  // （isActive 時 onClick=undefined → tabIndex=undefined），若不接手焦點，
+  // 鍵盤使用者會被丟回 <body>。所以：
+  //  - 鍵盤觸發 flip → 把焦點移到背面的「← BACK」按鈕
+  //  - 鍵盤觸發 ← BACK → 把焦點還給原 specimen card
+  //  - 滑鼠/觸控互動完全不移動焦點（避免點擊時焦點亂跳）
+  const backBtnRef = useRef<HTMLButtonElement>(null)
+  const keyboardFlipRef = useRef(false)   // 鍵盤觸發 flip → 焦點移到背面
+  const keyboardBackRef = useRef(false)   // 鍵盤觸發 ← BACK → 焦點還給卡片
+  const backViaPointerRef = useRef(false)
+
+  // 兩個方向的焦點移動都放在 isActive 的 effect 裡——effect 在 React commit
+  // 之後執行，能確保 tabIndex/可聚焦狀態已還原（在 click handler 裡用 rAF
+  // 實測會搶在 commit 前觸發而失效）
+  useEffect(() => {
+    if (isActive && keyboardFlipRef.current) {
+      keyboardFlipRef.current = false
+      // 背面是 backface-visibility:hidden + rotateY(180deg)：flip 進行中它
+      // 仍面向後方、未被繪製，太早 .focus() 會被瀏覽器拒絕、焦點掉到 <body>
+      // （實測確認）。等 flip transition（0.55s）完成、背面轉到正面被繪製後
+      // 再移焦點；reduced-motion 下 flip 近乎瞬間，立即移動即可。
+      const delay = prefersReduced ? 0 : 580
+      const t = setTimeout(() => backBtnRef.current?.focus(), delay)
+      return () => clearTimeout(t)
+    }
+    if (!isActive && keyboardBackRef.current) {
+      keyboardBackRef.current = false
+      // 收回方向的目標是外層卡片本體（.specimen-card 根 div，永遠被繪製），
+      // effect 此時 tabIndex 已還原為 0，直接 focus 即可，不需等待 transition
+      backBtnRef.current?.closest<HTMLElement>('.specimen-card')?.focus()
+    }
+  }, [isActive, prefersReduced])
 
   // 卡片只在「未展開」時把整張卡當觸發器；一旦翻面，外層 onClick 移除——
   // 3D rotateY 的子層（FULL CONTEXT 按鈕）疊在同一張卡內，瀏覽器對巢狀
@@ -314,6 +357,7 @@ function SpecimenFragment({
       ariaLabel={`${caseItem.title}, ${isActive ? 'showing detail' : 'showing summary'}`}
       expanded={isActive}
       onClick={isActive ? undefined : onActivate}
+      onKeyboardActivate={() => { keyboardFlipRef.current = true }}
       className={isActive ? 'is-active-specimen' : ''}
     >
       {pinned && <span className="specimen-pin" aria-hidden="true" />}
@@ -391,7 +435,7 @@ function SpecimenFragment({
             </div>
 
             <p className="lab-meta-tertiary type-mono-xs">
-              CLICK TO INSPECT
+              VIEW REVERSE
             </p>
 
             {/* Packet burst — hover 時短暫向外擴散的刻度，模擬訊號封包
@@ -424,10 +468,18 @@ function SpecimenFragment({
           >
             <div className="mb-3 flex items-center justify-between">
               <button
+                ref={backBtnRef}
                 type="button"
                 className="lab-meta-secondary type-mono-xs"
-                style={{ background: 'none', border: 'none', padding: 0 }}
-                onClick={onDeactivate}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                onPointerDown={() => { backViaPointerRef.current = true }}
+                onClick={() => {
+                  // 沒有先發生 pointerdown → 視為鍵盤觸發，標記讓 effect 在
+                  // commit 後把焦點還給卡片；滑鼠點擊則不移動焦點
+                  if (!backViaPointerRef.current) keyboardBackRef.current = true
+                  backViaPointerRef.current = false
+                  onDeactivate()
+                }}
               >
                 ← BACK
               </button>
@@ -452,7 +504,10 @@ function SpecimenFragment({
                 </button>
               </DisclosureTrigger>
               <DisclosureContent>
-                <p className="type-statement" style={{ fontSize: '0.72rem' }}>
+                {/* Phase 7A：context 改用 type-note（typed-note 聲音），與上方
+                    serif 斜體引言、四周的寬距大寫標籤形成不同閱讀節奏，
+                    不再是同一個 tooltip 裡的 mono 小字 */}
+                <p className="type-note">
                   {caseItem.context}
                 </p>
               </DisclosureContent>

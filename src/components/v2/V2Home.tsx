@@ -56,12 +56,14 @@ export function V2Home({ mode }: V2HomeProps) {
           className="px-6 py-12 md:px-10"
           style={{ borderTop: '1px solid var(--line-color)' }}
         >
+          {/* Phase 7A 對比修正：footer build label 從 archive-600 (≈1.6:1)
+              提到 #726E64（≈3.6:1）——仍是最低調的一層，但不再接近隱形 */}
           {mode === 'production' ? (
-            <p className="type-mono-xs" style={{ color: 'var(--color-archive-600)' }}>
+            <p className="type-mono-xs" style={{ color: '#726E64' }}>
               MATERIAL ARCHIVE V2 — PRODUCTION BUILD
             </p>
           ) : (
-            <p className="type-mono-xs" style={{ color: 'var(--color-archive-600)' }}>
+            <p className="type-mono-xs" style={{ color: '#726E64' }}>
               STAGING ROUTE — /v2-preview — MIRRORS THE PRODUCTION HOMEPAGE FOR COMPARISON
             </p>
           )}

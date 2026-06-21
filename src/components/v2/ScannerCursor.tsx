@@ -169,14 +169,19 @@ export function ScannerCursor() {
     }
     gsap.ticker.add(tick)
 
-    document.documentElement.style.cursor = 'none'
+    // 隱藏系統游標改用 data attribute + CSS gate（見 globals.css
+    // html[data-scanner-cursor="active"]），不再直接寫 inline cursor:none。
+    // 這層 effect 本身已被 prefersReduced / isCoarsePointer 擋下，CSS 那側
+    // 又額外 gate 在 (pointer: fine) and (no-preference)，雙重保險：
+    // coarse pointer / reduced-motion 一定保留系統游標
+    document.documentElement.setAttribute('data-scanner-cursor', 'active')
 
     return () => {
       document.documentElement.removeEventListener('mouseenter', onEnterDoc)
       document.documentElement.removeEventListener('mouseleave', onLeaveDoc)
       document.removeEventListener('mousemove', onMove)
       gsap.ticker.remove(tick)
-      document.documentElement.style.cursor = ''
+      document.documentElement.removeAttribute('data-scanner-cursor')
       lockTween?.kill()
       if (lockReleaseTimer) clearTimeout(lockReleaseTimer)
       activeSpecimen?.classList.remove('specimen-locked')

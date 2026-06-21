@@ -479,3 +479,101 @@ mobile experience completed、production mobile fully verified（這次
 **明確不宣稱**：accessibility fully verified、screen reader verified、
 mobile experience completed。這次清理只移除 dead code，不改變上述任何
 既有驗證限制。
+
+---
+
+## Phase 7A — Color / Contrast / Cursor / Focus Pass
+
+> 針對 v2 殘留的低對比文字、cursor:none 的 a11y 風險、flip card 翻面後的
+> 鍵盤焦點，做最小但有效的修正。**這是 contrast / cursor / keyboard focus
+> 的改善，不是完整 accessibility 驗證**——螢幕閱讀器仍未完整人工測試，
+> 沿用上方所有既有限制與不宣稱項目。
+
+**驗證方式**：`npx tsc --noEmit` / `npm run lint` /
+`rm -rf .next && npm run build` 三者皆通過；本地以乾淨重啟的 dev server
+（非 HMR 熱替換）+ 瀏覽器自動化（`preview_eval` 讀取 computed style /
+activeElement / matchMedia）做 smoke check。
+
+### Contrast / readability pass performed（非 WCAG 完整稽核）
+
+- [x] `.lab-meta-tertiary` 由 `archive-600`（#3A3835，約 1.6:1）提到
+      `#726E64`（約 3.6:1）——CLICK TO INSPECT 類提示、SPECIMEN LOG、
+      CALIBRATION 等不再接近隱形。computed color 實測為 rgb(114,110,100)。
+- [x] `SourceMarker` 的來源出處文字由 `archive-700`（約 1.2:1）提到
+      `archive-400`。
+- [x] `SpecimenRuler` 刻度數字、`EraLabSection` BOARD TYPE、footer build
+      label、`DesktopOnlyGate` disclaimer 由 archive-600/700 提到可讀區間。
+- [x] 仍刻意保留暗色質感，未把整站提亮成普通網站；archive-500（約 2.7:1）
+      等「低調但可見」的層級維持不動。
+- **不宣稱 WCAG fully verified**——只做了重點對比改善與 computed-style
+      抽查，非全頁逐元素的完整對比稽核。措辭限定為「contrast pass improved
+      readability」。
+
+### Era color identity（1970s amber vs 2010s signal red）
+
+- [x] 1970s `colorProfile.accent` 由暗紅 `#8B1A1A` 改為琥珀 `#D49A3C`
+      （與既有 `--color-era-70` 的 1970s 身分一致），與 2010s 的
+      `#FF2400` signal red 形成一眼可辨的冷暖色相區分。computed
+      `--era-accent` 與 specimen-pin 背景實測確認。
+- [x] 2010s `signal-rail-row` idle 由暖灰改為冷灰 `--color-signal-idle`
+      (#5E636B)，與 active 的 signal red 形成 platform-era 冷暖層級。
+- 1970s 紅藍套印錯位（`lab-misregister`）保留不變。
+
+### Cursor behavior reviewed / adjusted
+
+- [x] `ScannerCursor` 隱藏系統游標改用 `<html data-scanner-cursor>` +
+      CSS gate（`@media (prefers-reduced-motion: no-preference) and
+      (pointer: fine)`），取代直接寫 inline `cursor:none`。
+- [x] desktop fine-pointer + 允許動態：`bodyCursor` computed 為 `none`，
+      ScannerCursor 啟用（實測）。
+- [x] mobile / coarse pointer：`DesktopOnlyGate` 下 `bodyCursor` 為
+      `auto`，`data-scanner-cursor` 不存在，系統游標保留（實測 375×812）。
+- [x] reduced-motion：ScannerCursor effect early-return 不 mount，且 CSS
+      gate 整段不 match——雙重保險保留系統游標。**reduced-motion 視覺結果
+      未實機切換系統設定驗證**，沿用既有限制。
+- focus-visible outline 不受影響（ScannerCursor 僅用 fixed
+      pointer-events:none 圖層，不碰 outline / 不參與 keyboard focus）。
+
+### Keyboard focus behavior improved（flip card）
+
+- [x] `EraLabSection` 的 case flip card：鍵盤（Enter/Space）觸發翻面後，
+      焦點移到背面的「← BACK」按鈕（翻面後外層卡片退出 tab 順序，原本
+      焦點會掉到 `<body>`）。實測：dispatch Enter 後 `activeElement` 為
+      `← BACK` 按鈕。
+- [x] 鍵盤觸發「← BACK」收回後，焦點還給原 specimen card。實測：
+      `activeElement === card`（DIV role=button）。
+- [x] 滑鼠/觸控互動不移動焦點（以是否有先發生 pointerdown 判斷）。實測：
+      pointerdown+click 翻面後焦點未被強制移到背面。
+- [x] `MaterialBoard` 是 membrane peel（卡片本身 toggle、背面無獨立可聚焦
+      元素），無懸空焦點問題，未更動。
+- 焦點移動放在 `isActive` 的 effect（React commit 後）執行，避免在
+      click handler 用 rAF 搶在 commit 前觸發而失效。
+- **未引入 focus trap**（這不是 modal）。
+
+### Telemetry wording（去 SaaS status board 感）
+
+- [x] 2010s `QUEUE DEPTH / PACKET…RECEIVED / DROP…QUEUED / IDLE / LOCKED /
+      TRACE ACTIVE` 改為 archive signal annotation：`SIGNAL INDEX` /
+      `SIGNAL nn LOGGED: <case title>` / `UNREAD` / `READING` /
+      `ANNOTATING`。保留 signal / platform 概念，但不再是重複的假封包
+      filler。卡片正面 `CLICK TO INSPECT` → `VIEW REVERSE`、
+      `CLICK TO PEEL` → `LIFT SAMPLE`。
+- 卡背 context / culturalFunction 改用新的 `.type-note`（sentence-case
+      mono）聲音，與寬距大寫標籤、serif 斜體引言形成不同閱讀節奏，
+      降低 mono-caps 壟斷。
+
+### Smoke check（本地，乾淨重啟 dev server）
+
+- [x] `/` desktop（1280×900）渲染 v2（h1=FASHION ARCHIVE、#main-content）
+- [x] `/v2-preview` desktop 可用（#v2-preview-content、staging footer）
+- [x] mobile fallback（375×812）仍顯示 `DesktopOnlyGate`，無水平溢出
+- [x] flip card mouse interaction 正常、keyboard interaction 正常（上方）
+- [x] console 無 error（乾淨重啟後讀取，無任何 error）
+- [x] 無外部圖片請求（performance resource entries 全為 localhost /
+      data:，無 `<img>` 元素）
+- [x] 無 v1 cursor / ChapterNav 殘留
+
+**明確不宣稱**：accessibility fully verified、screen reader verified、
+mobile experience completed、WCAG fully verified。Phase 7A 只是
+contrast/readability pass、cursor behavior review/adjust、keyboard focus
+improvement，**螢幕閱讀器仍未完整人工測試**。

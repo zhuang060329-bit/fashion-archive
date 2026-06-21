@@ -16,14 +16,14 @@ export function SpecimenRuler({ ticks = 10, unit = 'MM', className }: SpecimenRu
       </div>
       <div className="mt-0.5 flex justify-between">
         {Array.from({ length: Math.ceil(ticks / 5) + 1 }).map((_, i) => (
-          <span key={i} className="type-mono-xs" style={{ color: 'var(--color-archive-700)', fontSize: '0.5rem' }}>
+          <span key={i} className="type-mono-xs" style={{ color: 'var(--color-archive-500)', fontSize: '0.5rem' }}>
             {String(i * 5).padStart(2, '0')}
           </span>
         ))}
       </div>
       <span
         className="type-mono-xs absolute right-0 -top-3"
-        style={{ color: 'var(--color-archive-700)', fontSize: '0.5rem' }}
+        style={{ color: 'var(--color-archive-500)', fontSize: '0.5rem' }}
       >
         {unit}
       </span>

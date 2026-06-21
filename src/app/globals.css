@@ -27,6 +27,11 @@
   --color-era-10:  #E63223;   /* signal red — streetwear brand signal */
   --color-era-20:  #9B8B7A;   /* muted warm — quiet luxury, material */
 
+  /* 2010s 平台介面冷灰——idle / 非作用中的 telemetry 用，刻意比 archive-500
+     的暖灰偏冷，讓 signal red（作用中）與冷灰（待命）形成 platform-era 的
+     冷暖訊號層級，不是整排同一個暖灰 */
+  --color-signal-idle: #5E636B;
+
   /* ── Typography ── */
   --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
   --font-mono:    var(--font-ibm-mono), 'Courier New', monospace;
@@ -177,6 +182,20 @@ body {
   font-size: clamp(0.85rem, 1.4vw, 1.1rem);
   line-height: 1.55;
   letter-spacing: 0.02em;
+  color: var(--color-archive-300);
+}
+
+/* Typed archive note — IBM Plex Mono 但「打字機筆記」聲音：sentence case、
+   不寬距、可讀行高。Phase 7A 引入，用來打破全站 mono-uppercase-0.22em
+   標籤壟斷——卡背的 context / culturalFunction 這類「要讀的句子」改用這個
+   聲音，與寬距大寫的儀器標籤、serif 斜體引言形成三種不同資訊聲音 */
+.type-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1.6;
+  text-transform: none;
   color: var(--color-archive-300);
 }
 
@@ -745,6 +764,21 @@ body {
   transform-origin: left;
 }
 
+/* ── Scanner cursor hide gate（Phase 7A a11y）──────────────────────
+   ScannerCursor.tsx mount 時在 <html> 加 data-scanner-cursor="active"，
+   unmount 時移除。隱藏系統游標只在「fine pointer + 允許動態」時生效——
+   即使 JS 邏輯日後回歸、屬性誤留，coarse pointer / 觸控 / reduced-motion
+   下這條規則整段不 match，系統游標一定保留。低視力使用者若開啟
+   reduce motion，會同時拿回系統游標。游標不參與 keyboard focus，
+   focus-visible outline 完全不受影響（ScannerCursor 只用 fixed
+   pointer-events:none 圖層） */
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  html[data-scanner-cursor="active"],
+  html[data-scanner-cursor="active"] * {
+    cursor: none;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────
    PHASE 6C-VISUAL MOTION PASS — cinematic refinement layer
    只影響 /v2-preview，不影響 production 首頁
@@ -964,7 +998,11 @@ body {
 }
 
 .lab-meta-tertiary {
-  color: var(--color-archive-600);
+  /* Phase 7A 對比修正：原本 archive-600 (#3A3835) 疊在 archive-900 上
+     對比僅約 1.6:1，CLICK TO INSPECT / SPECIMEN LOG / CALIBRATION / footer
+     等真正要讀的提示幾乎不可見。提到 #726E64（約 3.6:1）——仍是三層裡
+     最低調的一層，但不再是接近隱形的裝飾灰 */
+  color: #726E64;
 }
 
 /* Active 卡片內的 metadata 再提高一級，inactive 卡片則維持原階層 */
@@ -1103,9 +1141,11 @@ body.v2-lab-scope::-webkit-scrollbar-thumb:hover {
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   letter-spacing: 0.08em;
-  color: var(--color-archive-500);
+  /* 冷灰 idle，與 signal red 的 active 行形成冷暖層級；字級略放大讓
+     位址 / 狀態文字在 archive-900 上可讀 */
+  color: var(--color-signal-idle);
 }
 
 .signal-rail-row-active {

@@ -20,8 +20,12 @@ export const eras: Era[] = [
     colorProfile: {
       primary: '#1A1208',
       secondary: '#C9A96E',
-      accent: '#8B1A1A',
-      mood: 'metallic shadow, raw grain',
+      // Phase 7A：原本 accent 是暗紅 #8B1A1A，與 2010s 的 signal red 撞色，
+      // 兩個年代在畫面上分不出色相。改成琥珀，呼應既有 --color-era-70 的
+      // 1970s 身分（amber / aged paper / warmer DIY），與 2010s 的紅形成
+      // 一眼可辨的冷暖區分。紅藍套印錯位仍由 lab-misregister 保留。
+      accent: '#D49A3C',
+      mood: 'amber on shadow, raw grain',
     },
     caseIds: ['CASE-1970-001', 'CASE-1970-002', 'CASE-1970-003', 'CASE-1970-004'],
     garmentIds: ['GARM-001', 'GARM-003'],

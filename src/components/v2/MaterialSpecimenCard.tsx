@@ -22,6 +22,9 @@ interface MaterialSpecimenCardProps {
   role?: string
   ariaLabel?: string
   decorate?: boolean // 預設 true：加 punch hole + edge ticks，象徵「已歸檔標本」
+  // Phase 7A focus management：在「Enter/Space 觸發」時通知父層——讓 flip card
+  // 只在鍵盤觸發時把焦點移到背面，滑鼠/觸控不跳焦
+  onKeyboardActivate?: () => void
 }
 
 const MAX_TILT_DEG = 5
@@ -36,6 +39,7 @@ export function MaterialSpecimenCard({
   role,
   ariaLabel,
   decorate = true,
+  onKeyboardActivate,
 }: MaterialSpecimenCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const prefersReduced = useReducedMotion()
@@ -83,6 +87,9 @@ export function MaterialSpecimenCard({
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
+                // 先通知父層「這次是鍵盤觸發」，再執行 onClick——讓 flip card
+                // 能據此把焦點移到背面，滑鼠點擊則不會走這條路徑
+                onKeyboardActivate?.()
                 onClick()
               }
             }

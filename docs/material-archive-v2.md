@@ -246,3 +246,30 @@ console 無 error。
 **仍未完成（沿用既有限制）**：螢幕閱讀器人工測試尚未完整進行，
 **不得宣稱 accessibility fully verified / screen reader verified /
 mobile experience completed**。
+
+## 10. Phase 7A — Color / Contrast / Cursor / Focus Pass
+
+針對 v2 殘留的低對比、cursor:none a11y 風險、flip card 鍵盤焦點做最小修正。
+不新增功能、不擴內容、不重做 layout。詳細驗證見 `QA.md` Phase 7A 章節。
+
+- **Era color identity**：1970s `colorProfile.accent` 由暗紅 `#8B1A1A` 改為
+  琥珀 `#D49A3C`（呼應既有 `--color-era-70`），與 2010s `#FF2400` signal red
+  形成冷暖色相區分；2010s idle telemetry 改用冷灰 `--color-signal-idle`。
+- **Contrast**：`.lab-meta-tertiary`、`SourceMarker` 來源文字、ruler 數字、
+  footer / gate disclaimer 由 archive-600/700（約 1.2–1.6:1）提到可讀區間。
+  **仍刻意保留暗色質感，不宣稱 WCAG fully verified**。
+- **Typography**：新增 `.type-note`（sentence-case mono）給卡背 context /
+  culturalFunction，降低 mono-uppercase 標籤壟斷；提示文字改儀器動詞
+  （`VIEW REVERSE` / `LIFT SAMPLE`）。
+- **Cursor**：隱藏系統游標改用 `<html data-scanner-cursor>` + CSS gate
+  （`(prefers-reduced-motion: no-preference) and (pointer: fine)`）；
+  coarse pointer / reduced-motion 一定保留系統游標。
+- **Keyboard focus**：`EraLabSection` flip card 翻面後焦點移到背面
+  「← BACK」、收回後還給卡片，僅鍵盤觸發時移動；`MaterialBoard` peel 無
+  懸空焦點問題未動。未引入 focus trap。
+- **Telemetry wording**：2010s 假儀表板文案（QUEUE DEPTH / PACKET / DROP
+  QUEUED / IDLE / LOCKED / TRACE ACTIVE）改為 archive signal annotation。
+
+**仍未完成（沿用既有限制）**：螢幕閱讀器人工測試尚未完整進行，
+**不得宣稱 accessibility fully verified / screen reader verified /
+mobile experience completed / WCAG fully verified**。
