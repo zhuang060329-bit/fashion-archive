@@ -1360,6 +1360,114 @@ html[data-era='2020s'] { --era-accent: #b6a591; --surface-tint: 19, 17, 14; }
   z-index: 1;
 }
 
+/* ── 鼠標跟隨蒙版：lens 周圍圓形遮罩內揭露藍圖材料層 ── */
+.cursor-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* 只在 lens 周圍顯現 */
+  -webkit-mask-image: radial-gradient(circle 130px at var(--lens-x, 50%) var(--lens-y, 50%),
+    #000 0, #000 64px, transparent 128px);
+          mask-image: radial-gradient(circle 130px at var(--lens-x, 50%) var(--lens-y, 50%),
+    #000 0, #000 64px, transparent 128px);
+}
+.cursor-mask-content { position: absolute; inset: 0; }
+.cursor-mask-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--era-accent) 50%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--era-accent) 50%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.5;
+}
+.cursor-mask-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 130px at var(--lens-x, 50%) var(--lens-y, 50%),
+    color-mix(in oklch, var(--era-accent) 14%, transparent), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+/* ── 右側捲動進度軌 ── */
+.scroll-rail {
+  position: fixed;
+  top: 50%;
+  right: clamp(0.9rem, 1.6vw, 1.6rem);
+  transform: translateY(-50%);
+  z-index: 904;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  pointer-events: none;
+}
+.scroll-rail-track {
+  position: relative;
+  width: 2px;
+  height: 40vh;
+  background: var(--color-archive-800);
+  overflow: hidden;
+}
+.scroll-rail-fill {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 100%;
+  background: var(--era-accent);
+  transform: scaleY(var(--scroll-progress, 0));
+  transform-origin: top;
+}
+.scroll-rail-eras {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 40vh;
+}
+.scroll-rail-era {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-direction: row-reverse;
+}
+.scroll-rail-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--color-archive-600);
+  transition: background 0.3s, border-color 0.3s, transform 0.3s;
+}
+.scroll-rail-label {
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.12em;
+  color: var(--color-archive-600);
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 0.3s, transform 0.3s, color 0.3s;
+}
+/* 目前年代高亮（由 html data-era 驅動） */
+html[data-era='1970s'] .scroll-rail-era-1970s .scroll-rail-dot,
+html[data-era='1980s'] .scroll-rail-era-1980s .scroll-rail-dot,
+html[data-era='1990s'] .scroll-rail-era-1990s .scroll-rail-dot,
+html[data-era='2000s'] .scroll-rail-era-2000s .scroll-rail-dot,
+html[data-era='2010s'] .scroll-rail-era-2010s .scroll-rail-dot,
+html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-dot {
+  background: var(--era-accent);
+  border-color: var(--era-accent);
+  transform: scale(1.5);
+}
+html[data-era='1970s'] .scroll-rail-era-1970s .scroll-rail-label,
+html[data-era='1980s'] .scroll-rail-era-1980s .scroll-rail-label,
+html[data-era='1990s'] .scroll-rail-era-1990s .scroll-rail-label,
+html[data-era='2000s'] .scroll-rail-era-2000s .scroll-rail-label,
+html[data-era='2010s'] .scroll-rail-era-2010s .scroll-rail-label,
+html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--color-archive-200);
+}
+@media (pointer: coarse) { .scroll-rail, .cursor-mask { display: none; } }
+
 /* ── ArchiveLens 游標 ──────────────────────────────────────── */
 .archive-lens {
   position: fixed;

@@ -13,6 +13,8 @@ import { useDesktopViewport } from '@/hooks/useDesktopViewport'
 import { DesktopOnlyGate } from '@/components/v2/DesktopOnlyGate'
 import { InteractiveSurface } from '@/components/v2/system/InteractiveSurface'
 import { ArchiveLens } from '@/components/v2/system/ArchiveLens'
+import { CursorMaskLayer } from '@/components/v2/system/CursorMaskLayer'
+import { ScrollProgressRail } from '@/components/v2/system/ScrollProgressRail'
 import { EntryScene } from '@/components/v2/EntryScene'
 import { EraScene } from '@/components/v2/EraScene'
 import { ClosingThesis } from '@/components/v2/ClosingThesis'
@@ -40,6 +42,8 @@ export function V2Home({ mode }: V2HomeProps) {
   return (
     <>
       <ArchiveLens />
+      <CursorMaskLayer />
+      <ScrollProgressRail />
       <InteractiveSurface>
         <main id={mainId} tabIndex={mode === 'production' ? -1 : undefined} className="surface-content">
           <EntryScene />
