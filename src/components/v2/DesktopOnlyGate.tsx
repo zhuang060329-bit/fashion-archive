@@ -33,23 +33,23 @@ export function DesktopOnlyGate() {
 
       <header className="flex items-center justify-between">
         <span className="type-mono-xs">FASHION ARCHIVE</span>
-        <span className="type-mono-xs">MODE: MATERIAL LAB</span>
+        <span className="type-mono-xs">POST-1970</span>
       </header>
 
       <div className="flex flex-1 flex-col items-start justify-center gap-6 py-12">
         <p className="type-mono-xs" style={{ color: 'var(--color-era-10)' }}>
-          VIEWPORT: INSUFFICIENT
+          DESKTOP REQUIRED
         </p>
         <h1
           className="type-chapter"
           style={{ fontSize: 'clamp(2rem, 9vw, 2.8rem)', maxWidth: '22ch' }}
         >
-          This archive is designed for desktop inspection.
+          This archive is built as a desktop inspection surface.
         </h1>
-        <p className="type-statement" style={{ maxWidth: '32ch' }}>
-          Open on a larger screen to enter the material lab. The specimen
-          boards, scanner cursor, and inspection tools below need room to
-          work properly.
+        <p className="type-statement" style={{ maxWidth: '34ch' }}>
+          The whole thing is run with a cursor — scanning garments, dragging
+          fragments, reading each decade as a scene. Open it on a larger screen
+          to operate the full interface.
         </p>
         <div className="flex flex-col gap-1 pt-4">
           <span className="type-mono-xs">REQUIRED: DESKTOP / LARGE TABLET</span>

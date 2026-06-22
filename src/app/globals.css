@@ -1270,4 +1270,1036 @@ body.v2-lab-scope::-webkit-scrollbar-thumb:hover {
   border-left: 2px solid color-mix(in oklab, var(--era-accent) 72%, transparent);
 }
 
+/* ═════════════════════════════════════════════════════════════
+   SHOWPIECE INTERACTION PASS — redesign/showpiece-interaction-pass
+   反應式材料表面 + ArchiveLens 游標 + 年代場景主題 + kinetic hero。
+   獨立區塊，方便整段檢視 / 回退。
+   ═════════════════════════════════════════════════════════════ */
+
+/* ── 年代主題：由 <html data-era> 切換，驅動背景 / lens / accent ──
+   每個年代一組：--era-accent（訊號色）、--surface-tint（背景底色相）、
+   --era-ink（該年代主文字色，極微差異維持暗色檔案質感） */
+:root {
+  --era-accent: #7a7a6a;
+  --surface-tint: 20, 19, 16;
+  --lens-tint: 240, 237, 230;
+}
+html[data-era='1970s'] { --era-accent: #d49a3c; --surface-tint: 28, 21, 11; }
+html[data-era='1980s'] { --era-accent: #e7c24a; --surface-tint: 24, 20, 8;  }
+html[data-era='1990s'] { --era-accent: #9aa0a0; --surface-tint: 16, 17, 18; }
+html[data-era='2000s'] { --era-accent: #cf9b2a; --surface-tint: 26, 19, 10; }
+html[data-era='2010s'] { --era-accent: #e63223; --surface-tint: 14, 14, 16; }
+html[data-era='2020s'] { --era-accent: #b6a591; --surface-tint: 19, 17, 14; }
+
+/* ── 背景：固定四層，content 之下 ── */
+.archive-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.archive-bg-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%,
+      rgba(var(--surface-tint), 0.85) 0%,
+      transparent 55%),
+    linear-gradient(180deg,
+      rgb(var(--surface-tint)) 0%,
+      var(--color-archive-black) 70%);
+  /* 年代切換時色相平滑過渡 */
+  transition: background 1.2s var(--ease-archive);
+  /* scroll 視差：背景隨捲動極輕微上移，製造「表面在動」 */
+  transform: translateY(calc(var(--scroll-progress, 0) * -40px));
+}
+
+.archive-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* cursor bloom — 跟隨 lens 的柔光暈，讀 InteractiveSurface 寫的座標 */
+.archive-bg-bloom {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    260px circle at var(--lens-x, 50%) var(--lens-y, 50%),
+    color-mix(in oklch, var(--era-accent) 16%, transparent),
+    transparent 68%
+  );
+  opacity: calc(0.4 + var(--ptr-speed, 0) * 0.6);
+  transition: opacity 0.4s ease;
+  mix-blend-mode: screen;
+}
+
+.archive-bg-grain {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 170px 170px;
+  animation: grain-shift 0.8s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-bg-grain { animation: none; }
+  .archive-bg-base { transition: none; transform: none; }
+  .archive-bg-bloom { opacity: 0.3; }
+}
+
+/* content 必須疊在背景之上 */
+.surface-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── ArchiveLens 游標 ──────────────────────────────────────── */
+.archive-lens {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  z-index: 905;
+  will-change: transform, width, height;
+  transition: opacity 0.25s ease;
+}
+.archive-lens[data-hidden='true'] { opacity: 0; }
+.archive-lens[data-pressed='true'] { filter: brightness(1.6); }
+
+.lens-corner {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 0 solid var(--color-archive-white);
+  transition: width 0.25s var(--ease-archive), height 0.25s var(--ease-archive), border-color 0.2s;
+}
+.lens-corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.lens-corner-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.lens-corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.lens-corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+.lens-cross {
+  position: absolute;
+  background: var(--color-archive-white);
+  opacity: 0.7;
+  top: 50%;
+  left: 50%;
+}
+.lens-cross-x { width: 5px; height: 1px; transform: translate(-50%, -50%); }
+.lens-cross-y { width: 1px; height: 5px; transform: translate(-50%, -50%); }
+
+/* scan：吸附鎖定到物件，角括號延伸 + accent 色 + 中心十字隱藏（讓位給內容） */
+.archive-lens[data-state='scan'] .lens-corner {
+  width: 12px;
+  height: 12px;
+  border-color: var(--era-accent);
+}
+.archive-lens[data-state='scan'] .lens-cross { opacity: 0; }
+.archive-lens[data-state='hover'] .lens-corner { width: 9px; height: 9px; }
+
+/* pull：拉長成方向把手 */
+.archive-lens[data-state='pull'] .lens-corner { border-color: var(--era-accent); }
+
+/* 掃描線：鎖定新物件時在框內掃過一次 */
+.lens-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--era-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.lens-sweep.lens-sweep-run {
+  animation: lens-sweep-pass 0.5s var(--ease-archive);
+}
+@keyframes lens-sweep-pass {
+  0%   { top: 0;    opacity: 0.9; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.archive-lens-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 905;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-archive-white);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  will-change: transform;
+}
+.archive-lens-label[data-show='true'] { opacity: 0.92; }
+
+/* 精準瞄準點：緊跟原始游標的小亮點，difference 混色在任何底色上都可見 */
+.archive-lens-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--color-archive-white);
+  pointer-events: none;
+  z-index: 906;
+  mix-blend-mode: difference;
+  box-shadow: 0 0 8px 1px color-mix(in oklch, var(--era-accent) 70%, transparent);
+}
+.archive-lens[data-state='scan'] ~ .archive-lens-dot {
+  background: var(--era-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens-sweep.lens-sweep-run { animation: none; }
+}
+
+/* ── 隱藏系統游標 gate（只在 fine pointer + 允許動態時）──────── */
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  html[data-archive-active='true'],
+  html[data-archive-active='true'] * {
+    cursor: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ENTRY SCENE — boot sequence + kinetic title + thesis hero
+   ───────────────────────────────────────────────────────────── */
+
+.entry-scene {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(2rem, 6vw, 6rem);
+}
+
+/* 進站時整個 hero 內容的 reveal mask（GSAP 控制 clip-path / opacity） */
+.entry-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2rem;
+}
+
+/* hero ambient */
+.entry-ambient { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.entry-beam {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--color-archive-white);
+  box-shadow: 0 0 30px 7px color-mix(in oklch, var(--color-archive-white) 55%, transparent);
+  opacity: 0;
+}
+.entry-ghost {
+  position: absolute;
+  right: clamp(1rem, 3vw, 4rem);
+  top: 18%;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  writing-mode: vertical-rl;
+  color: var(--color-archive-600);
+}
+.entry-corner { position: absolute; width: 26px; height: 26px; border: 1px solid var(--color-archive-600); }
+.entry-corner-tl { top: 1.6rem; left: 1.6rem; border-width: 1px 0 0 1px; }
+.entry-corner-tr { top: 1.6rem; right: 1.6rem; border-width: 1px 1px 0 0; }
+.entry-corner-bl { bottom: 1.6rem; left: 1.6rem; border-width: 0 0 1px 1px; }
+.entry-corner-br { bottom: 1.6rem; right: 1.6rem; border-width: 0 1px 1px 0; }
+@media (prefers-reduced-motion: reduce) { .entry-beam { display: none; } }
+
+/* kinetic 巨型標題：每個字一行、超大、行距壓縮、負字距、editorial */
+.kinetic-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(4rem, 15.5vw, 15rem);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.kinetic-line {
+  display: block;
+  overflow: hidden;
+}
+.kinetic-line > span {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* chromatic split：紅/青殘影，偏移量由游標速度 --ptr-speed 驅動，
+   游標越快、字越「散」——kinetic type 與互動綁定，不是靜態裝飾 */
+.kinetic-glyph { position: relative; }
+.kinetic-glyph::before,
+.kinetic-glyph::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+.kinetic-glyph::before {
+  color: #e63223;
+  transform: translateX(calc(2px + var(--ptr-speed, 0) * 14px));
+}
+.kinetic-glyph::after {
+  color: #2f8fa0;
+  transform: translateX(calc(-2px - var(--ptr-speed, 0) * 14px));
+}
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-glyph::before, .kinetic-glyph::after { display: none; }
+}
+/* 標題第二行往右推、用 outline 字體形成 editorial 對位 */
+.kinetic-line-2 {
+  padding-left: clamp(2rem, 12vw, 14rem);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-archive-300);
+}
+@supports not ((-webkit-text-stroke: 1px black)) {
+  .kinetic-line-2 { color: var(--color-archive-600); }
+}
+
+.entry-thesis {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(1.05rem, 1.9vw, 1.7rem);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--color-archive-200);
+  max-width: 46rem;
+}
+.entry-thesis .thesis-key {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--era-accent);
+}
+
+/* 年代索引條：六個年代的水平刻度，hover 提示，scroll 時對應高亮 */
+.era-index-rail {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--line-color);
+  border-bottom: 1px solid var(--line-color);
+}
+.era-index-cell {
+  flex: 1;
+  padding: 0.7rem 0.6rem 0.8rem;
+  border-left: 1px solid var(--line-color);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-archive-500);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: color 0.3s, background 0.3s;
+}
+.era-index-cell:first-child { border-left: 0; }
+.era-index-cell:hover { color: var(--color-archive-100); background: rgba(255,255,255,0.02); }
+.era-index-cell .era-index-mech {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  color: var(--color-archive-200);
+  text-transform: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   INSPECTABLE OBJECT — 取代 specimen card，六種年代物件皮膚
+   ───────────────────────────────────────────────────────────── */
+
+.inspect-obj {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: color-mix(in oklch, rgb(var(--surface-tint, 20 19 16)) 60%, var(--color-archive-900));
+  border: 1px solid var(--color-archive-700);
+  padding: 1.1rem 1.1rem 1.3rem;
+  overflow: hidden;
+  color: inherit;
+  /* 組合：基礎旋轉（pinboard/tabloid）+ 磁吸 3D tilt + pull 位移 */
+  transform:
+    rotate(var(--obj-rotate, 0deg))
+    perspective(900px)
+    rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg))
+    translate3d(var(--pull-x, 0px), var(--pull-y, 0px), 0);
+  transition: border-color 0.3s, transform 0.3s var(--ease-archive), box-shadow 0.3s;
+  transform-style: preserve-3d;
+  min-height: 11rem;
+}
+.inspect-obj:hover,
+.inspect-obj:focus-visible {
+  border-color: var(--obj-accent);
+  transition: border-color 0.3s, transform 0.12s linear, box-shadow 0.3s;
+}
+/* hover 時游標位置的 spotlight，疊在材料層上 */
+.inspect-obj::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-micro);
+  background: radial-gradient(200px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in oklch, var(--obj-accent) 26%, transparent), transparent 68%);
+  z-index: 1;
+}
+.inspect-obj:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .inspect-obj { transform: rotate(var(--obj-rotate, 0deg)); }
+}
+.inspect-obj.is-open {
+  border-color: var(--obj-accent);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--obj-accent) 50%, transparent),
+    0 14px 40px -18px rgba(0, 0, 0, 0.8);
+  z-index: 4;
+}
+
+.inspect-front-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.9rem;
+}
+.inspect-index { color: var(--color-archive-400); }
+
+.inspect-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.15rem, 1.7vw, 1.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--color-archive-100);
+  margin-bottom: 0.9rem;
+  text-wrap: balance;
+}
+
+/* 拆解：開啟時正面三層往不同方向炸開散離 */
+.inspect-front-head,
+.inspect-title,
+.inspect-keywords {
+  transition: transform var(--duration-card-reveal) var(--ease-archive),
+    opacity calc(var(--duration-card-reveal) * 0.7) ease;
+}
+.inspect-obj.is-open .inspect-front-head { transform: translateY(-16px); opacity: 0; }
+.inspect-obj.is-open .inspect-title { transform: translate(-10px, -34px) scale(0.84); opacity: 0.12; }
+.inspect-obj.is-open .inspect-keywords { transform: translateY(34px); opacity: 0; }
+
+.inspect-keywords { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.inspect-kw {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-archive-400);
+  border: 1px solid var(--color-archive-700);
+  padding: 0.12rem 0.4rem;
+}
+
+.inspect-cue {
+  position: absolute;
+  bottom: 0.9rem;
+  left: 1.1rem;
+  color: var(--obj-accent);
+  opacity: 0.8;
+  transition: opacity 0.25s;
+}
+.inspect-obj.is-open .inspect-cue { opacity: 1; }
+
+/* material texture 層 — 各 skin override */
+.inspect-material {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* hover scan line — 掃過物件一次的 accent 細線（hover 觸發 CSS animation） */
+.inspect-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--obj-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.inspect-obj:hover .inspect-scanline {
+  animation: inspect-scan 0.7s var(--ease-archive);
+}
+@keyframes inspect-scan {
+  0% { top: 0; opacity: 0.7; }
+  100% { top: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inspect-obj:hover .inspect-scanline { animation: none; }
+}
+
+/* REVEAL — material readout，從底部拉開 */
+.inspect-readout {
+  position: absolute;
+  inset: 0;
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  z-index: 2;
+  background: linear-gradient(180deg,
+    color-mix(in oklch, var(--color-archive-900) 60%, transparent) 0%,
+    color-mix(in oklch, var(--color-archive-900) 94%, transparent) 42%);
+  backdrop-filter: blur(2px);
+  /* iris：從中心方框展開，不是底部滑入 */
+  clip-path: inset(46% 46% 46% 46%);
+  opacity: 0;
+  transition: clip-path var(--duration-card-reveal) var(--ease-archive),
+    opacity calc(var(--duration-card-reveal) * 0.5) ease;
+  pointer-events: none;
+}
+.inspect-obj.is-open .inspect-readout {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+/* 拆片層：三塊紙樣裁片，開啟時從中心往外散開（exploded pattern pieces） */
+.inspect-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.inspect-obj.is-open .inspect-pattern { opacity: 0.5; }
+.pattern-piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38%;
+  height: 42%;
+  border: 1px solid var(--obj-accent);
+  background: color-mix(in oklch, var(--obj-accent) 5%, transparent);
+  transform: translate(-50%, -50%) scale(0.6);
+  transition: transform var(--duration-card-reveal) var(--ease-archive);
+}
+.pattern-piece-1 { clip-path: polygon(0 0, 100% 12%, 88% 100%, 8% 86%); }
+.pattern-piece-2 { clip-path: polygon(12% 0, 100% 0, 100% 88%, 0 100%); }
+.pattern-piece-3 { clip-path: polygon(0 14%, 90% 0, 100% 100%, 16% 92%); }
+.inspect-obj.is-open .pattern-piece-1 { transform: translate(-128%, -120%) scale(0.86) rotate(-8deg); }
+.inspect-obj.is-open .pattern-piece-2 { transform: translate(40%, -96%) scale(0.78) rotate(6deg); }
+.inspect-obj.is-open .pattern-piece-3 { transform: translate(-30%, 44%) scale(0.92) rotate(4deg); }
+@media (prefers-reduced-motion: reduce) {
+  .inspect-pattern, .pattern-piece { transition: none; }
+}
+
+/* 拆解 cut line：開啟瞬間一條 accent 橫線掃過（物件被切開的剖面感） */
+.inspect-readout::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  background: var(--obj-accent);
+  transform: scaleX(0);
+  transition: transform var(--duration-card-reveal) var(--ease-archive);
+}
+.inspect-obj.is-open .inspect-readout::before { transform: scaleX(1); }
+.inspect-readout-rule {
+  position: absolute;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--obj-accent);
+  transition: width var(--duration-card-reveal) var(--ease-archive) 0.1s;
+}
+.inspect-obj.is-open .inspect-readout-rule { width: 100%; }
+
+.inspect-statement {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1rem, 1.5vw, 1.4rem);
+  line-height: 1.15;
+  color: var(--color-archive-100);
+}
+.inspect-context {
+  max-height: 8.5rem;
+  overflow: auto;
+}
+.inspect-source {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line-color);
+  padding-top: 0.5rem;
+}
+.inspect-source-cat {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid;
+  padding: 0.1rem 0.4rem;
+}
+.inspect-source-text {
+  color: var(--color-archive-500);
+  font-size: 0.52rem;
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: reduce) {
+  .inspect-readout, .inspect-readout-rule { transition: none; }
+}
+
+/* ── SKIN: pin（1970s）— 撕邊紙片 + 圖釘 + 套印錯位質感 ── */
+.inspect-pin {
+  clip-path: polygon(0 0, 100% 0, 100% 94%, 92% 100%, 74% 95%, 54% 100%, 34% 95%, 14% 100%, 0 96%);
+}
+.inspect-pin .inspect-material {
+  background-image: radial-gradient(circle, rgba(10,9,6,0.5) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+  opacity: 0.18;
+}
+.inspect-pin::before {
+  content: '';
+  position: absolute;
+  top: 7px; left: 50%;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--obj-accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+/* ── SKIN: plate（1980s）— 高光金屬板，gloss sweep ── */
+.inspect-plate {
+  border-width: 1px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 30%),
+    color-mix(in oklch, rgb(var(--surface-tint)) 70%, var(--color-archive-900));
+}
+.inspect-plate .inspect-material {
+  background: linear-gradient(105deg, transparent 35%, color-mix(in oklch, var(--obj-accent) 14%, transparent) 50%, transparent 65%);
+  opacity: 0.6;
+}
+.inspect-plate .inspect-title { font-style: normal; font-weight: 400; letter-spacing: 0; }
+
+/* ── SKIN: margin（1990s）— 極簡留白，僅左側髮絲線 ── */
+.inspect-margin {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--color-archive-700);
+  padding-left: 1.4rem;
+  min-height: 9rem;
+}
+.inspect-margin:hover,
+.inspect-margin:focus-visible { border-left-color: var(--obj-accent); }
+.inspect-margin.is-open { box-shadow: none; }
+.inspect-margin .inspect-readout { background: var(--color-archive-black); }
+.inspect-margin .inspect-title { color: var(--color-archive-200); }
+
+/* ── SKIN: crop（2000s）— tabloid 過曝裁切，輕微旋轉重疊 ── */
+.inspect-crop {
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 80%, var(--color-archive-900));
+}
+.inspect-crop .inspect-material {
+  background:
+    linear-gradient(120deg, color-mix(in oklch, var(--obj-accent) 20%, transparent), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 4px);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+}
+.inspect-crop .inspect-title { color: var(--color-archive-white); }
+
+/* ── SKIN: signal（2010s）— 介面式，左 accent 訊號條 ── */
+.inspect-signal {
+  border-left: 3px solid var(--obj-accent);
+  background: color-mix(in oklch, #0c0e13 86%, var(--obj-accent));
+}
+.inspect-signal .inspect-material {
+  background: repeating-linear-gradient(90deg, color-mix(in oklch, var(--obj-accent) 30%, transparent) 0 1px, transparent 1px 7px);
+  opacity: 0.12;
+}
+.inspect-signal .inspect-title { font-style: normal; font-family: var(--font-mono); font-size: clamp(0.9rem,1.3vw,1.2rem); text-transform: uppercase; letter-spacing: -0.01em; }
+
+/* ── SKIN: swatch（2020s）— 材料近攝，厚實低對比，織紋 ── */
+.inspect-swatch {
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 88%, #161410);
+  border-color: var(--color-archive-800);
+}
+.inspect-swatch .inspect-material {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(240,237,230,0.03) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-45deg, rgba(240,237,230,0.02) 0 1px, transparent 1px 5px);
+  opacity: 0.8;
+}
+.inspect-swatch .inspect-title { color: var(--color-archive-200); }
+.inspect-swatch .inspect-material::after {
+  content: '';
+  position: absolute;
+  right: 10px; bottom: 10px;
+  width: 34px; height: 34px;
+  border: 1px solid var(--obj-accent);
+  opacity: 0.4;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ERA SCENE — 六個年代場景 shell + 六種版型語法
+   ───────────────────────────────────────────────────────────── */
+
+.era-scene-section {
+  position: relative;
+  padding: clamp(5rem, 11vw, 11rem) clamp(1.5rem, 5vw, 5rem) clamp(5rem, 11vw, 11rem) clamp(4rem, 8vw, 8rem);
+  border-top: 1px solid var(--line-color);
+  min-height: 96svh;
+  overflow: hidden;
+}
+
+/* ── ambient density 層 ── */
+.era-ambient { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.era-ghost-num {
+  position: absolute;
+  right: clamp(-1rem, 1vw, 2rem);
+  bottom: -4vw;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(16rem, 40vw, 44rem);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklch, var(--era-accent) 28%, transparent);
+  opacity: 0.5;
+  user-select: none;
+}
+.era-side-rail {
+  position: absolute;
+  left: clamp(0.8rem, 2.5vw, 2.2rem);
+  top: clamp(5rem, 11vw, 11rem);
+  bottom: clamp(5rem, 11vw, 11rem);
+  width: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.era-side-mech {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--era-accent) 75%, transparent);
+}
+.era-side-ticks {
+  flex: 1;
+  width: 1px;
+  background: var(--line-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+.era-side-tick { width: 6px; height: 1px; background: var(--color-archive-600); }
+.era-side-tick.is-major { width: 12px; background: var(--era-accent); opacity: 0.7; }
+.era-side-index {
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  color: var(--color-archive-500);
+}
+.era-corner { position: absolute; width: 22px; height: 22px; border: 1px solid color-mix(in oklch, var(--era-accent) 40%, transparent); }
+.era-corner-tl { top: 1.5rem; left: 1.5rem; border-width: 1px 0 0 1px; }
+.era-corner-br { right: 1.5rem; bottom: 1.5rem; border-width: 0 1px 1px 0; }
+
+/* header / body 必須在 ambient 之上 */
+.era-head, .era-body { position: relative; z-index: 1; }
+
+/* ── 關聯網覆疊 ── */
+.connector-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+.connector-line {
+  stroke: var(--era-accent);
+  stroke-width: 1;
+  opacity: 0.4;
+  vector-effect: non-scaling-stroke;
+  animation: connector-draw 0.55s var(--ease-archive) forwards;
+}
+@keyframes connector-draw { to { stroke-dashoffset: 0; } }
+.connector-node {
+  fill: var(--era-accent);
+  opacity: 0.7;
+  vector-effect: non-scaling-stroke;
+}
+.connector-node-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .connector-line { animation: none; stroke-dashoffset: 0 !important; }
+}
+
+/* ── 材料樣本鋪面 ── */
+.era-material-strip {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(3rem, 7vw, 6rem);
+  border-top: 1px solid var(--line-color);
+  padding-top: 1.4rem;
+}
+.era-material-strip-label { color: var(--color-archive-500); display: block; margin-bottom: 1rem; }
+.era-material-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px;
+  background: var(--line-color);
+  border: 1px solid var(--line-color);
+}
+.material-swatch {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 70%, var(--color-archive-900));
+  overflow: hidden;
+  transition: background 0.3s;
+}
+.material-swatch:hover { background: color-mix(in oklch, var(--era-accent) 14%, var(--color-archive-900)); }
+.material-swatch-weave { position: absolute; inset: 0; opacity: 0.5; }
+.material-swatch-0 .material-swatch-weave { background-image: repeating-linear-gradient(45deg, rgba(240,237,230,0.06) 0 1px, transparent 1px 5px); }
+.material-swatch-1 .material-swatch-weave { background-image: repeating-linear-gradient(0deg, rgba(240,237,230,0.05) 0 1px, transparent 1px 4px), repeating-linear-gradient(90deg, rgba(240,237,230,0.05) 0 1px, transparent 1px 4px); }
+.material-swatch-2 .material-swatch-weave { background-image: radial-gradient(circle, rgba(240,237,230,0.08) 0.5px, transparent 0.6px); background-size: 5px 5px; }
+.material-swatch-3 .material-swatch-weave { background-image: repeating-linear-gradient(-45deg, color-mix(in oklch, var(--era-accent) 18%, transparent) 0 1px, transparent 1px 6px); }
+.material-swatch-4 .material-swatch-weave { background-image: repeating-linear-gradient(90deg, rgba(240,237,230,0.07) 0 2px, transparent 2px 7px); }
+.material-swatch-label {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.45rem;
+  color: var(--color-archive-300);
+  font-size: 0.52rem;
+}
+.material-swatch::after {
+  content: '';
+  position: absolute;
+  top: 0.4rem; right: 0.4rem;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--era-accent);
+  border-right: 1px solid var(--era-accent);
+  opacity: 0.5;
+}
+
+.era-head { margin-bottom: clamp(2.5rem, 5vw, 4.5rem); max-width: 64rem; }
+.era-head-kicker {
+  display: flex;
+  align-items: baseline;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+.era-head-mechanism {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  color: var(--era-accent);
+}
+.era-head-period { color: var(--color-archive-400); }
+.era-head-thesis {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(1.05rem, 1.9vw, 1.55rem);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--color-archive-200);
+  max-width: 44rem;
+  margin-bottom: 1.4rem;
+}
+.era-head-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line-color);
+  padding-top: 0.8rem;
+}
+
+/* 1970s — pin-board 拼貼：CSS columns 製造自然錯落 */
+.era-body-pinboard {
+  columns: 3;
+  column-gap: 1.6rem;
+}
+.era-body-pinboard .era-obj {
+  break-inside: avoid;
+  margin-bottom: 1.6rem;
+  display: inline-block;
+  width: 100%;
+}
+@media (max-width: 1100px) { .era-body-pinboard { columns: 2; } }
+
+/* 1980s — power columns：剛性等高直欄，刻意高瘦 */
+.era-body-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--line-color);
+  border: 1px solid var(--line-color);
+}
+.era-body-columns .era-obj {
+  min-height: 20rem;
+  border: none;
+}
+
+/* 1990s — void：大留白單欄 */
+.era-body-void {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 7vw, 6.5rem);
+  padding: 2rem 0;
+}
+
+/* 2000s — tabloid：重疊裁切，flex wrap 負 margin 製造堆疊 */
+.era-body-tabloid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: flex-start;
+}
+.era-body-tabloid .era-obj-crop {
+  flex: 0 0 clamp(220px, 28%, 340px);
+  margin-right: -2rem;
+  box-shadow: -8px 8px 24px -10px rgba(0,0,0,0.7);
+}
+
+/* 2010s — feed：ticker + 窄堆疊 */
+.era-body-feed { max-width: 46rem; }
+.feed-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  border-block: 1px solid var(--line-color);
+  padding: 0.5rem 0;
+  margin-bottom: 2rem;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+          mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+.feed-ticker-run {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--era-accent);
+  animation: feed-ticker-scroll 26s linear infinite;
+}
+@keyframes feed-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feed-ticker-run { animation: none; }
+}
+.feed-stack { display: flex; flex-direction: column; }
+.feed-stack .era-obj { margin-top: -0.5rem; }
+.feed-stack .era-obj:first-child { margin-top: 0; }
+
+/* 2020s — silence：少量大物件、超大留白、置中收斂 */
+.era-body-silence {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: clamp(2.5rem, 6vw, 5rem);
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+.era-body-silence .era-obj { min-height: 16rem; }
+
+/* ─────────────────────────────────────────────────────────────
+   CLOSING THESIS — 收束六機制
+   ───────────────────────────────────────────────────────────── */
+
+.closing-thesis {
+  position: relative;
+  padding: clamp(6rem, 14vw, 14rem) clamp(1.5rem, 5vw, 5rem) clamp(3rem, 6vw, 5rem);
+  border-top: 1px solid var(--line-color);
+}
+.closing-kicker { color: var(--color-archive-500); margin-bottom: 2rem; }
+.closing-line {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--color-archive-100);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2em;
+  margin-bottom: 2.5rem;
+}
+.closing-sep {
+  color: var(--era-accent, var(--color-archive-600));
+  margin: 0 0.25em;
+  font-style: normal;
+}
+.closing-body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  line-height: 1.4;
+  color: var(--color-archive-300);
+  max-width: 44rem;
+  margin-bottom: 3.5rem;
+}
+.closing-trace-track {
+  height: 2px;
+  width: 100%;
+  background: var(--line-color);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.closing-trace {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, transparent, var(--color-archive-300));
+  transition: width 0.2s linear;
+}
+.closing-disclaimer {
+  color: #726e64;
+  max-width: 44rem;
+  line-height: 1.6;
+}
+
 
