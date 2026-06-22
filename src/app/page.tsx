@@ -1,8 +1,5 @@
-// 正式首頁掛載 Material Archive / Garment Lab（v2）。
-// 舊版 v1 內容骨架（EntryScreen / EraSection / TrendSystem /
-// GarmentIndex 等）已於 Phase 6K 從 codebase 移除；底層的
-// src/data/* 與 SourceMarker 仍保留，由 v2 元件沿用。
-// 詳見 docs/material-archive-v2.md。
+// 正式首頁掛載 v2（showpiece-interaction-pass）。內容資料層 src/data/*
+// 由 v2 元件沿用；舊的 v1 骨架與 Material Lab 元件群已移除。
 
 import { V2Home } from '@/components/v2/V2Home'
 

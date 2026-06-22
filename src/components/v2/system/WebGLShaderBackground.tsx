@@ -57,20 +57,22 @@ void main(){
   vec2 m = (uMouse / uRes) * asp;
 
   // 游標 refraction lens：把附近座標往游標方向擠壓，形成液態折射凸鏡
+  // （調大擠壓量 + 放寬作用半徑 → 折射更明顯）
   vec2 toM = p - m;
   float d = length(toM);
-  float lens = exp(-d * 4.5);
-  p -= normalize(toM + 1e-5) * lens * 0.06;
+  float lens = exp(-d * 3.6);
+  p -= normalize(toM + 1e-5) * lens * 0.11;
 
-  // domain warping flow（兩層 warp 製造流體感）
-  float t = uTime * 0.045;
+  // domain warping flow（兩層 warp 製造流體感；加快流速）
+  float t = uTime * 0.082;
   vec2 q = vec2(fbm(p * 1.8 + t), fbm(p * 1.8 + vec2(5.2, 1.3) - t));
-  vec2 r = vec2(fbm(p * 1.8 + 2.0 * q + vec2(1.7, 9.2) + t * 1.2),
+  vec2 r = vec2(fbm(p * 1.8 + 2.0 * q + vec2(1.7, 9.2) + t * 1.3),
                 fbm(p * 1.8 + 2.0 * q + vec2(8.3, 2.8) - t));
   float f = fbm(p * 1.8 + 2.6 * r + uScroll * 0.6);
   f = smoothstep(0.05, 0.95, f);
 
-  float inten = pow(f, 1.7) * (0.28 + uSpeed * 0.45) + lens * 0.55;
+  // 整體調亮一些（base 0.28→0.4、lens 0.55→0.78）
+  float inten = pow(f, 1.6) * (0.4 + uSpeed * 0.5) + lens * 0.78;
   vec3 col = (uColor / 255.0) * inten;
   gl_FragColor = vec4(col, clamp(inten, 0.0, 1.0));
 }
