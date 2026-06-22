@@ -39,14 +39,9 @@ export default function RootLayout({
           Skip to main content
         </a>
 
-        {/* Grain film overlay — position:fixed, --z-grain */}
-        <div className="grain-layer" aria-hidden="true" />
-        {/* Scanline overlay — position:fixed, --z-scanline */}
-        <div className="scanline-layer" aria-hidden="true" />
-
-        {/* v2（Material Lab）路由各自掛載自己的 ScannerCursor；舊版 v1
-            chrome（CursorFollower / ChapterNav）已於 Phase 6K 移除，
-            連帶不再需要 RouteScopedChrome 包裝層。 */}
+        {/* 反應式材料背景（grain / 纖維場 / cursor bloom）由 v2 的
+            ReactiveArchiveBackground 接管，掛在 InteractiveSurface 內，
+            不再用 v1 的全域 grain-layer / scanline-layer 靜態貼圖。 */}
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>

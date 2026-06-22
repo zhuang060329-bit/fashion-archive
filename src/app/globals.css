@@ -107,24 +107,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   GRAIN OVERLAY — film grain texture, position:fixed
-   ───────────────────────────────────────────────────────────── */
-
-.grain-layer {
-  position: fixed;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
-  pointer-events: none;
-  z-index: var(--z-grain);
-  opacity: var(--grain-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-  will-change: transform;
-  animation: grain-shift 0.8s steps(1) infinite;
-}
-
+/* grain-shift keyframe — 由 showpiece 的 .archive-bg-grain 使用 */
 @keyframes grain-shift {
   0%   { transform: translate(0, 0) }
   20%  { transform: translate(-4%, 9%) }
@@ -132,24 +115,6 @@ body {
   60%  { transform: translate(4%, -12%) }
   80%  { transform: translate(9%, 4%) }
   100% { transform: translate(0, 0) }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   SCANLINE OVERLAY — very subtle, suggests CRT / scan document
-   ───────────────────────────────────────────────────────────── */
-
-.scanline-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: var(--z-scanline);
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 0, 0, var(--scan-opacity)) 3px,
-    rgba(0, 0, 0, var(--scan-opacity)) 4px
-  );
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -226,19 +191,6 @@ body {
   text-transform: uppercase;
 }
 
-/* Era number — huge, Cormorant, used as spatial element */
-.type-era-num {
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(5rem, 15vw, 13rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--color-archive-800);
-  pointer-events: none;
-  user-select: none;
-}
-
 /* ─────────────────────────────────────────────────────────────
    ARCHIVE LINE / BORDER UTILITIES
    ───────────────────────────────────────────────────────────── */
@@ -268,30 +220,6 @@ body {
 .corner-mark-tr::before { top: 0; right: 0; border-width: 1px 1px 0 0; }
 .corner-mark-bl::before { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
 .corner-mark-br::before { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-
-/* ─────────────────────────────────────────────────────────────
-   KEYWORD / TAG CHIPS
-   ───────────────────────────────────────────────────────────── */
-
-.keyword-tag {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-archive-400);
-  border: 1px solid var(--color-archive-700);
-  padding: 0.2rem 0.5rem;
-  display: inline-block;
-  /* white-space: normal 讓極長字串在必要時換行而不是被 nowrap 逼出版面。
-     用 break-word 而非 anywhere ——anywhere 會把 min-content 尺寸縮到單字元
-     寬度，造成短字（如 SEQUIN）被逐字斷成一行一字；break-word 只在整個字
-     超出容器寬度時才斷，短關鍵字仍維持單行緊湊感 */
-  white-space: normal;
-  max-width: 100%;
-  overflow-wrap: break-word;
-  word-break: normal;
-  line-height: 1.4;
-}
 
 /* ─────────────────────────────────────────────────────────────
    ACCESSIBILITY — skip link + focus-visible ring
@@ -377,20 +305,6 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   SCROLL REVEAL — initial state (GSAP will animate in)
-   ───────────────────────────────────────────────────────────── */
-
-.will-reveal {
-  opacity: 0;
-  transform: translateY(24px);
-}
-
-.will-reveal-fast {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-/* ─────────────────────────────────────────────────────────────
    REDUCED MOTION — override all animations and transitions
    ───────────────────────────────────────────────────────────── */
 
@@ -402,16 +316,6 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .grain-layer {
-    animation: none;
-  }
-
-  .will-reveal,
-  .will-reveal-fast {
-    opacity: 1;
-    transform: none;
   }
 }
 
@@ -433,841 +337,1153 @@ body {
   .type-chapter {
     font-size: clamp(2.2rem, 10vw, 3.5rem);
   }
+}
 
-  .type-era-num {
-    font-size: clamp(4rem, 22vw, 8rem);
+/* ═════════════════════════════════════════════════════════════
+   SHOWPIECE INTERACTION PASS — redesign/showpiece-interaction-pass
+   反應式材料表面 + ArchiveLens 游標 + 年代場景主題 + kinetic hero。
+   獨立區塊，方便整段檢視 / 回退。
+   ═════════════════════════════════════════════════════════════ */
+
+/* ── 年代主題：由 <html data-era> 切換，驅動背景 / lens / accent ──
+   每個年代一組：--era-accent（訊號色）、--surface-tint（背景底色相）、
+   --era-ink（該年代主文字色，極微差異維持暗色檔案質感） */
+:root {
+  --era-accent: #7a7a6a;
+  --surface-tint: 20, 19, 16;
+  --lens-tint: 240, 237, 230;
+}
+html[data-era='1970s'] { --era-accent: #d49a3c; --surface-tint: 28, 21, 11; }
+html[data-era='1980s'] { --era-accent: #e7c24a; --surface-tint: 24, 20, 8;  }
+html[data-era='1990s'] { --era-accent: #9aa0a0; --surface-tint: 16, 17, 18; }
+html[data-era='2000s'] { --era-accent: #cf9b2a; --surface-tint: 26, 19, 10; }
+html[data-era='2010s'] { --era-accent: #e63223; --surface-tint: 14, 14, 16; }
+html[data-era='2020s'] { --era-accent: #b6a591; --surface-tint: 19, 17, 14; }
+
+/* ── 背景：固定四層，content 之下 ── */
+.archive-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.archive-bg-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%,
+      rgba(var(--surface-tint), 0.85) 0%,
+      transparent 55%),
+    linear-gradient(180deg,
+      rgb(var(--surface-tint)) 0%,
+      var(--color-archive-black) 70%);
+  /* 年代切換時色相平滑過渡 */
+  transition: background 1.2s var(--ease-archive);
+  /* scroll 視差：背景隨捲動極輕微上移，製造「表面在動」 */
+  transform: translateY(calc(var(--scroll-progress, 0) * -40px));
+}
+
+.archive-bg-gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.archive-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* cursor bloom — 跟隨 lens 的柔光暈，讀 InteractiveSurface 寫的座標 */
+.archive-bg-bloom {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    260px circle at var(--lens-x, 50%) var(--lens-y, 50%),
+    color-mix(in oklch, var(--era-accent) 16%, transparent),
+    transparent 68%
+  );
+  opacity: calc(0.4 + var(--ptr-speed, 0) * 0.6);
+  transition: opacity 0.4s ease;
+  mix-blend-mode: screen;
+}
+
+.archive-bg-grain {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 170px 170px;
+  animation: grain-shift 0.8s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-bg-grain { animation: none; }
+  .archive-bg-base { transition: none; transform: none; }
+  .archive-bg-bloom { opacity: 0.3; }
+}
+
+/* content 必須疊在背景之上 */
+.surface-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 鼠標跟隨蒙版：lens 周圍圓形遮罩內揭露藍圖材料層 ── */
+.cursor-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* 只在 lens 周圍顯現 */
+  -webkit-mask-image: radial-gradient(circle 130px at var(--lens-x, 50%) var(--lens-y, 50%),
+    #000 0, #000 64px, transparent 128px);
+          mask-image: radial-gradient(circle 130px at var(--lens-x, 50%) var(--lens-y, 50%),
+    #000 0, #000 64px, transparent 128px);
+}
+.cursor-mask-content { position: absolute; inset: 0; }
+.cursor-mask-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--era-accent) 50%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--era-accent) 50%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.5;
+}
+.cursor-mask-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 130px at var(--lens-x, 50%) var(--lens-y, 50%),
+    color-mix(in oklch, var(--era-accent) 14%, transparent), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+/* ── 右側捲動進度軌 ── */
+.scroll-rail {
+  position: fixed;
+  top: 50%;
+  right: clamp(0.9rem, 1.6vw, 1.6rem);
+  transform: translateY(-50%);
+  z-index: 904;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  pointer-events: none;
+}
+.scroll-rail-track {
+  position: relative;
+  width: 2px;
+  height: 40vh;
+  background: var(--color-archive-800);
+  overflow: hidden;
+}
+.scroll-rail-fill {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 100%;
+  background: var(--era-accent);
+  transform: scaleY(var(--scroll-progress, 0));
+  transform-origin: top;
+}
+.scroll-rail-eras {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 40vh;
+}
+.scroll-rail-era {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-direction: row-reverse;
+}
+.scroll-rail-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--color-archive-600);
+  transition: background 0.3s, border-color 0.3s, transform 0.3s;
+}
+.scroll-rail-label {
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.12em;
+  color: var(--color-archive-600);
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 0.3s, transform 0.3s, color 0.3s;
+}
+/* 目前年代高亮（由 html data-era 驅動） */
+html[data-era='1970s'] .scroll-rail-era-1970s .scroll-rail-dot,
+html[data-era='1980s'] .scroll-rail-era-1980s .scroll-rail-dot,
+html[data-era='1990s'] .scroll-rail-era-1990s .scroll-rail-dot,
+html[data-era='2000s'] .scroll-rail-era-2000s .scroll-rail-dot,
+html[data-era='2010s'] .scroll-rail-era-2010s .scroll-rail-dot,
+html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-dot {
+  background: var(--era-accent);
+  border-color: var(--era-accent);
+  transform: scale(1.5);
+}
+html[data-era='1970s'] .scroll-rail-era-1970s .scroll-rail-label,
+html[data-era='1980s'] .scroll-rail-era-1980s .scroll-rail-label,
+html[data-era='1990s'] .scroll-rail-era-1990s .scroll-rail-label,
+html[data-era='2000s'] .scroll-rail-era-2000s .scroll-rail-label,
+html[data-era='2010s'] .scroll-rail-era-2010s .scroll-rail-label,
+html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--color-archive-200);
+}
+@media (pointer: coarse) { .scroll-rail, .cursor-mask { display: none; } }
+
+/* ── ArchiveLens 游標 ──────────────────────────────────────── */
+.archive-lens {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  z-index: 905;
+  will-change: transform, width, height;
+  transition: opacity 0.25s ease;
+}
+.archive-lens[data-hidden='true'] { opacity: 0; }
+.archive-lens[data-pressed='true'] { filter: brightness(1.6); }
+
+.lens-corner {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 0 solid var(--color-archive-white);
+  transition: width 0.25s var(--ease-archive), height 0.25s var(--ease-archive), border-color 0.2s;
+}
+.lens-corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.lens-corner-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.lens-corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.lens-corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+.lens-cross {
+  position: absolute;
+  background: var(--color-archive-white);
+  opacity: 0.7;
+  top: 50%;
+  left: 50%;
+}
+.lens-cross-x { width: 5px; height: 1px; transform: translate(-50%, -50%); }
+.lens-cross-y { width: 1px; height: 5px; transform: translate(-50%, -50%); }
+
+/* scan：吸附鎖定到物件，角括號延伸 + accent 色 + 中心十字隱藏（讓位給內容） */
+.archive-lens[data-state='scan'] .lens-corner {
+  width: 12px;
+  height: 12px;
+  border-color: var(--era-accent);
+}
+.archive-lens[data-state='scan'] .lens-cross { opacity: 0; }
+.archive-lens[data-state='hover'] .lens-corner { width: 9px; height: 9px; }
+
+/* pull：拉長成方向把手 */
+.archive-lens[data-state='pull'] .lens-corner { border-color: var(--era-accent); }
+
+/* 掃描線：鎖定新物件時在框內掃過一次 */
+.lens-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--era-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.lens-sweep.lens-sweep-run {
+  animation: lens-sweep-pass 0.5s var(--ease-archive);
+}
+@keyframes lens-sweep-pass {
+  0%   { top: 0;    opacity: 0.9; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.archive-lens-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 905;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-archive-white);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  will-change: transform;
+}
+.archive-lens-label[data-show='true'] { opacity: 0.92; }
+
+/* 精準瞄準點：緊跟原始游標的小亮點，difference 混色在任何底色上都可見 */
+.archive-lens-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--color-archive-white);
+  pointer-events: none;
+  z-index: 906;
+  mix-blend-mode: difference;
+  box-shadow: 0 0 8px 1px color-mix(in oklch, var(--era-accent) 70%, transparent);
+}
+.archive-lens[data-state='scan'] ~ .archive-lens-dot {
+  background: var(--era-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens-sweep.lens-sweep-run { animation: none; }
+}
+
+/* ── 隱藏系統游標 gate（只在 fine pointer + 允許動態時）──────── */
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  html[data-archive-active='true'],
+  html[data-archive-active='true'] * {
+    cursor: none;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────
-   V2 LAB PROTOTYPE — Material Archive / Garment Lab redesign
-   (Phase 6B, redesign/material-archive-v2 branch only)
-   隔離在獨立區塊方便日後整段移除或保留
+   ENTRY SCENE — boot sequence + kinetic title + thesis hero
    ───────────────────────────────────────────────────────────── */
 
-.scanner-frame {
-  border: none;
-}
-
-.scanner-frame-corner {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  border-color: var(--color-archive-white);
-  border-style: solid;
-  border-width: 0;
-}
-
-.scanner-frame-corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
-.scanner-frame-corner-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
-.scanner-frame-corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
-.scanner-frame-corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-
-/* Specimen card — hand-ported spotlight + tilt 技術（手法參考 React Bits
-   SpotlightCard / TiltedCard 公開模式，非 CLI 安裝；--spot-x/--spot-y/
-   --tilt-x/--tilt-y 由 MaterialSpecimenCard 的 mousemove handler 更新） */
-.specimen-card {
+.entry-scene {
   position: relative;
-  border: 1px solid var(--color-archive-700);
-  background: var(--color-archive-900);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   overflow: hidden;
-  transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-  transition: transform 0.5s var(--ease-archive), border-color 0.3s, box-shadow var(--duration-micro) ease-out;
+  padding: clamp(2rem, 6vw, 6rem);
+}
+
+/* 進站時整個 hero 內容的 reveal mask（GSAP 控制 clip-path / opacity） */
+.entry-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2rem;
+}
+
+/* hero ambient */
+.entry-ambient { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.entry-beam {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--color-archive-white);
+  box-shadow: 0 0 30px 7px color-mix(in oklch, var(--color-archive-white) 55%, transparent);
+  opacity: 0;
+}
+.entry-ghost {
+  position: absolute;
+  right: clamp(1rem, 3vw, 4rem);
+  top: 18%;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  writing-mode: vertical-rl;
+  color: var(--color-archive-600);
+}
+.entry-corner { position: absolute; width: 26px; height: 26px; border: 1px solid var(--color-archive-600); }
+.entry-corner-tl { top: 1.6rem; left: 1.6rem; border-width: 1px 0 0 1px; }
+.entry-corner-tr { top: 1.6rem; right: 1.6rem; border-width: 1px 1px 0 0; }
+.entry-corner-bl { bottom: 1.6rem; left: 1.6rem; border-width: 0 0 1px 1px; }
+.entry-corner-br { bottom: 1.6rem; right: 1.6rem; border-width: 0 1px 1px 0; }
+@media (prefers-reduced-motion: reduce) { .entry-beam { display: none; } }
+
+/* kinetic 巨型標題：每個字一行、超大、行距壓縮、負字距、editorial */
+.kinetic-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(4rem, 15.5vw, 15rem);
+  line-height: 0.82;
+  letter-spacing: -0.03em;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.kinetic-line {
+  display: block;
+  overflow: hidden;
+}
+.kinetic-line > span {
+  display: inline-block;
   will-change: transform;
 }
 
-.specimen-card::before {
+/* chromatic split：紅/青殘影，偏移量由游標速度 --ptr-speed 驅動，
+   游標越快、字越「散」——kinetic type 與互動綁定，不是靜態裝飾 */
+.kinetic-glyph { position: relative; }
+.kinetic-glyph::before,
+.kinetic-glyph::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+.kinetic-glyph::before {
+  color: #e63223;
+  transform: translateX(calc(2px + var(--ptr-speed, 0) * 14px));
+}
+.kinetic-glyph::after {
+  color: #2f8fa0;
+  transform: translateX(calc(-2px - var(--ptr-speed, 0) * 14px));
+}
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-glyph::before, .kinetic-glyph::after { display: none; }
+}
+/* 標題第二行往右推、用 outline 字體形成 editorial 對位 */
+.kinetic-line-2 {
+  padding-left: clamp(2rem, 12vw, 14rem);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-archive-300);
+}
+@supports not ((-webkit-text-stroke: 1px black)) {
+  .kinetic-line-2 { color: var(--color-archive-600); }
+}
+
+.entry-thesis {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(1.05rem, 1.9vw, 1.7rem);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--color-archive-200);
+  max-width: 46rem;
+}
+.entry-thesis .thesis-key {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--era-accent);
+}
+
+/* 年代索引條：六個年代的水平刻度，hover 提示，scroll 時對應高亮 */
+.era-index-rail {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--line-color);
+  border-bottom: 1px solid var(--line-color);
+}
+.era-index-cell {
+  flex: 1;
+  padding: 0.7rem 0.6rem 0.8rem;
+  border-left: 1px solid var(--line-color);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-archive-500);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: color 0.3s, background 0.3s;
+}
+.era-index-cell:first-child { border-left: 0; }
+.era-index-cell:hover { color: var(--color-archive-100); background: rgba(255,255,255,0.02); }
+.era-index-cell .era-index-mech {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  color: var(--color-archive-200);
+  text-transform: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   INSPECTABLE OBJECT — 取代 specimen card，六種年代物件皮膚
+   ───────────────────────────────────────────────────────────── */
+
+.inspect-obj {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: color-mix(in oklch, rgb(var(--surface-tint, 20 19 16)) 60%, var(--color-archive-900));
+  border: 1px solid var(--color-archive-700);
+  padding: 1.1rem 1.1rem 1.3rem;
+  overflow: hidden;
+  color: inherit;
+  /* 組合：基礎旋轉（pinboard/tabloid）+ 磁吸 3D tilt + pull 位移 */
+  transform:
+    rotate(var(--obj-rotate, 0deg))
+    perspective(900px)
+    rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg))
+    translate3d(var(--pull-x, 0px), var(--pull-y, 0px), 0);
+  transition: border-color 0.3s, transform 0.3s var(--ease-archive), box-shadow 0.3s;
+  transform-style: preserve-3d;
+  min-height: 11rem;
+}
+.inspect-obj:hover,
+.inspect-obj:focus-visible {
+  border-color: var(--obj-accent);
+  transition: border-color 0.3s, transform 0.12s linear, box-shadow 0.3s;
+}
+/* hover 時游標位置的 spotlight，疊在材料層上 */
+.inspect-obj::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   opacity: 0;
   transition: opacity var(--duration-micro);
-  background: radial-gradient(
-    220px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    color-mix(in oklch, var(--specimen-accent, var(--color-archive-400)) 22%, transparent),
-    transparent 70%
-  );
+  background: radial-gradient(200px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in oklch, var(--obj-accent) 26%, transparent), transparent 68%);
+  z-index: 1;
 }
-
-/* Scanner lock-on bloom — ScannerCursor 鎖定標本瞬間短暫加上的 class，
-   700ms 後自動移除（見 ScannerCursor.tsx）。儀器感的瞬間高亮，不是
-   持續發光的霓虹卡片 */
-.specimen-card.specimen-locked {
-  border-color: var(--specimen-accent, var(--color-archive-400));
-  box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--specimen-accent, var(--color-archive-400)) 60%, transparent),
-    0 0 22px color-mix(in oklch, var(--specimen-accent, var(--color-archive-400)) 30%, transparent);
-}
-
+.inspect-obj:hover::after { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
-  .specimen-card.specimen-locked { box-shadow: none; }
+  .inspect-obj { transform: rotate(var(--obj-rotate, 0deg)); }
+}
+.inspect-obj.is-open {
+  border-color: var(--obj-accent);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--obj-accent) 50%, transparent),
+    0 14px 40px -18px rgba(0, 0, 0, 0.8);
+  z-index: 4;
 }
 
-.specimen-card:hover::before,
-.specimen-card:focus-within::before {
-  opacity: 1;
-}
-
-.specimen-card:hover,
-.specimen-card:focus-within {
-  border-color: var(--specimen-accent, var(--color-archive-400));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .specimen-card {
-    transition: none;
-    transform: none !important;
-  }
-}
-
-/* Fabric weave texture — 雙向 cross-hatch，取代純色 archive-900/800 平面，
-   讓「材質」這個詞在視覺上真的存在，不是只靠文字宣告 */
-.specimen-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.5;
-  background-image:
-    repeating-linear-gradient(45deg, rgba(240,237,230,0.025) 0px, rgba(240,237,230,0.025) 1px, transparent 1px, transparent 4px),
-    repeating-linear-gradient(-45deg, rgba(240,237,230,0.018) 0px, rgba(240,237,230,0.018) 1px, transparent 1px, transparent 4px);
-}
-
-/* Edge tick strip — 卡片底緣的量測刻度，由 MaterialSpecimenCard 內建一個
-   實際 DOM 元素產生（CSS 偽元素已被 spotlight/weave 用掉），象徵「這張
-   標本卡本身被放在量測格上」 */
-.specimen-edge-ticks {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 5px;
-  pointer-events: none;
-  opacity: 0.4;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--color-archive-500) 0px,
-    var(--color-archive-500) 1px,
-    transparent 1px,
-    transparent 9px
-  );
-}
-
-/* Punch hole — binder 風格圓孔，貼齊卡片左上角，暗示「這是被歸檔的標本」 */
-.specimen-punch-hole {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-archive-black);
-  border: 1px solid var(--color-archive-700);
-  pointer-events: none;
-}
-
-/* ── Inspection ruler — 校準刻度列，SpecimenRuler.tsx 使用 ── */
-.lab-ruler {
+.inspect-front-head {
   display: flex;
-  align-items: flex-end;
-  height: 1.1rem;
-  opacity: 0.55;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.9rem;
+}
+.inspect-index { color: var(--color-archive-400); }
+
+.inspect-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.15rem, 1.7vw, 1.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--color-archive-100);
+  margin-bottom: 0.9rem;
+  text-wrap: balance;
 }
 
-.lab-ruler-tick {
-  flex: 1;
-  position: relative;
-  height: 100%;
-  border-left: 1px solid var(--color-archive-700);
+/* 拆解：開啟時正面三層往不同方向炸開散離 */
+.inspect-front-head,
+.inspect-title,
+.inspect-keywords {
+  transition: transform var(--duration-card-reveal) var(--ease-archive),
+    opacity calc(var(--duration-card-reveal) * 0.7) ease;
 }
-
-.lab-ruler-tick::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 1px;
-  height: 5px;
-  background: var(--color-archive-600);
-}
-
-.lab-ruler-tick-major::before {
-  height: 9px;
-  background: var(--color-archive-500);
-}
-
-/* ── Translucent lab plate — 用在 EntryLab 樣本欄，象徵壓克力標本板，
-   刻意只用在這一處，不是到處貼 glassmorphism ── */
-.lab-plate {
-  background: color-mix(in oklch, var(--color-archive-900) 70%, transparent);
-  backdrop-filter: blur(6px);
-  border: 1px solid var(--color-archive-800);
-}
-
-/* ── Pattern-cutting guide lines — 縫紙樣的虛線格，當作 section 浮水印 ── */
-.lab-cutting-guide {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.22;
-  background-image: repeating-linear-gradient(
-    115deg,
-    transparent 0px,
-    transparent 38px,
-    var(--line-color) 38px,
-    var(--line-color) 39px
-  );
-}
-
-/* ── Specimen pin — 1970s pin-board 的圖釘標記 ── */
-.specimen-pin {
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--era-accent, var(--color-archive-400));
-  box-shadow: 0 1px 2px rgba(0,0,0,0.6);
-  z-index: 2;
-}
-
-/* ── Specimen tape — zine/pin-board 的紙標籤，旋轉貼附在卡片一角 ── */
-.specimen-tape {
-  position: absolute;
-  top: -8px;
-  right: 10%;
-  background: var(--color-archive-100);
-  color: var(--color-archive-black);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
-  padding: 0.12rem 0.4rem;
-  transform: rotate(-3deg);
-  opacity: 0.88;
-  z-index: 2;
-}
-
-/* ── Misregistered print — zine/影印機套印偏移效果，疊兩層文字模擬
-   廉價影印對不準的錯位，但保留可讀性（偏移量極小，加 mix-blend-mode） ── */
-.lab-misregister {
-  position: relative;
-  display: inline-block;
-}
-
-.lab-misregister::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 0.6px;
-  top: 0.6px;
-  color: var(--color-era-10);
-  mix-blend-mode: screen;
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lab-misregister::before { display: none; }
-}
-
-/* ── Archive stamp — verified confidence 的橡皮章視覺，取代純文字標籤 ── */
-.lab-stamp {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
-  border: 1px solid currentColor;
-  padding: 0.1rem 0.45rem;
-  transform: rotate(-2.5deg);
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.16em;
-  opacity: 0.85;
-}
-
-/* ── Signal packet — 2010s 終端機式 timestamp / drop queue 標記 ── */
-.signal-packet {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.1em;
-  color: var(--color-era-10);
-}
-
-.signal-packet::before {
-  content: '';
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-era-10);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .signal-packet::before {
-    animation: signal-pulse 1.6s ease-in-out infinite;
-  }
-}
-
-@keyframes signal-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-/* ── Signal density bar — 抽象訊號密度條，不是真實社群數據，
-   只是 lab telemetry 風格的視覺密度指示 ── */
-.signal-density {
-  display: flex;
-  gap: 2px;
-  align-items: flex-end;
-  height: 10px;
-}
-
-.signal-density-bar {
-  width: 2px;
-  background: var(--color-era-10);
-  opacity: 0.55;
-}
-
-/* ── ScannerCursor 強化：scan-pass sweep + caliper ticks ── */
-.scanner-sweep {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 40%;
-  background: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in oklch, var(--color-archive-white) 35%, transparent),
-    transparent
-  );
-  pointer-events: none;
-}
-
-.scanner-frame-tick {
-  position: absolute;
-  background: var(--color-archive-white);
-  opacity: 0.7;
-}
-
-/* Lock-on readout underline — label 鎖定時從 0 畫到滿，模擬儀器
-   readout 鎖定，而不是普通 tooltip 淡入 */
-.scanner-label-underline {
-  position: absolute;
-  left: 0;
-  bottom: -3px;
-  height: 1px;
-  background: var(--color-archive-white);
-  transform-origin: left;
-}
-
-/* ── Scanner cursor hide gate（Phase 7A a11y）──────────────────────
-   ScannerCursor.tsx mount 時在 <html> 加 data-scanner-cursor="active"，
-   unmount 時移除。隱藏系統游標只在「fine pointer + 允許動態」時生效——
-   即使 JS 邏輯日後回歸、屬性誤留，coarse pointer / 觸控 / reduced-motion
-   下這條規則整段不 match，系統游標一定保留。低視力使用者若開啟
-   reduce motion，會同時拿回系統游標。游標不參與 keyboard focus，
-   focus-visible outline 完全不受影響（ScannerCursor 只用 fixed
-   pointer-events:none 圖層） */
-@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
-  html[data-scanner-cursor="active"],
-  html[data-scanner-cursor="active"] * {
-    cursor: none;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   PHASE 6C-VISUAL MOTION PASS — cinematic refinement layer
-   只影響 /v2-preview，不影響 production 首頁
-   ───────────────────────────────────────────────────────────── */
-
-/* ── EntryLab opening ritual：scan-develop 標題顯影遮罩 ──
-   clip-path 由 GSAP 控制（EntryLab.tsx），這裡只放靜態樣式 */
-.lab-title-develop {
-  position: relative;
-  display: inline-block;
-}
-
-.lab-title-develop-edge {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--color-archive-white);
-  box-shadow: 0 0 12px 2px color-mix(in oklch, var(--color-archive-white) 70%, transparent);
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lab-title-develop-edge { display: none; }
-}
-
-/* ── Lab dust / fiber particles — 只在 beam 路徑附近出現，不是滿版飄浮 ── */
-.lab-dust {
-  position: absolute;
-  pointer-events: none;
-  border-radius: 50%;
-  background: var(--color-archive-300);
-  opacity: 0;
-}
-
-.lab-dust-fiber {
-  border-radius: 1px;
-  width: 6px !important;
-  height: 1px !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lab-dust { display: none; }
-}
-
-/* ── MaterialBoard — specimen tray，不是等寬 grid card ──────── */
-.material-tray-rail {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-archive-700) 0px,
-    var(--color-archive-700) 1px,
-    transparent 1px,
-    transparent 14px
-  );
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* 卡片尺寸層級——featured 標本比一般 tray slot 大一級，
-   不是十張等權重的資料卡 */
-.material-tray-featured {
-  grid-row: span 2;
-}
-
-@media (max-width: 767px) {
-  .material-tray-featured { grid-row: span 1; }
-}
-
-/* Membrane lift peel——比純 clip-path 揭開多一層「掀起薄膜」的
-   位移與陰影，模擬撕開標本透明片，而不是平面內容切換 */
-.material-membrane {
-  box-shadow: 0 -6px 16px -4px rgba(0, 0, 0, 0.55);
-}
-
-/* ── 1970s — halftone + layered tear + 雙層套印錯位 ──────────── */
-.lab-halftone {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.1;
-  background-image: radial-gradient(
-    circle,
-    rgba(10, 9, 6, 0.9) 0.6px,
-    transparent 0.6px
-  );
-  background-size: 4px 4px;
-}
-
-.lab-misregister-double::before,
-.lab-misregister-double::after {
-  content: attr(data-text);
-  position: absolute;
-  pointer-events: none;
-}
-
-.lab-misregister-double::before {
-  left: 0.7px;
-  top: 0.7px;
-  color: var(--color-era-10);
-  mix-blend-mode: screen;
-  opacity: 0.5;
-}
-
-.lab-misregister-double::after {
-  left: -0.6px;
-  top: -0.5px;
-  color: #2f6e8f;
-  mix-blend-mode: screen;
-  opacity: 0.35;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lab-misregister-double::before,
-  .lab-misregister-double::after { display: none; }
-}
-
-/* 紙張厚度陰影——撕邊底下加一層偏移色塊，模擬疊了第二張紙。
-   故意不用負 z-index：父層 .lab-board-fragment 是 position:relative
-   但沒設 z-index，不會建立新的 stacking context，負值子層會穿出去
-   貼到整頁背景下方而消失。靠 DOM 順序（這個元素是第一個 child）
-   讓後面的內容自然蓋在它上面即可 */
-.lab-torn-layer-shadow {
-  position: absolute;
-  inset: 4px -4px -6px 4px;
-  background: rgba(0, 0, 0, 0.35);
-}
-
-/* Staple mark — 兩條平行短線，zine 裝訂感 */
-.specimen-staple {
-  position: absolute;
-  top: -2px;
-  left: 14px;
-  width: 10px;
-  height: 4px;
-  border-top: 2px solid var(--color-archive-500);
-  opacity: 0.7;
-}
-
-/* ── 2010s — packet stream ticker + hover burst ──────────────── */
-.signal-ticker-track {
-  overflow: hidden;
-  white-space: nowrap;
-  opacity: 0.6;
-  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-          mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-}
-
-.signal-ticker-content {
-  display: inline-block;
-  white-space: nowrap;
-  animation: signal-ticker-scroll 18s linear infinite;
-}
-
-@keyframes signal-ticker-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .signal-ticker-content { animation: none; transform: translateX(0); }
-}
-
-/* Packet burst — hover 時短暫向外擴散的刻度，模擬訊號封包追蹤，
-   只在 :hover 觸發一次性視覺，不是持續循環特效 */
-.signal-burst {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.signal-burst-tick {
-  position: absolute;
-  width: 1px;
-  height: 6px;
-  background: var(--color-era-10);
-  top: 50%;
-  left: 50%;
-  opacity: 0;
-}
-
-.group:hover .signal-burst-tick {
-  animation: signal-burst-out var(--duration-lock-on) ease-out forwards;
-}
-
-@keyframes signal-burst-out {
-  0% { opacity: 0.9; transform: translate(-50%, -50%) rotate(var(--burst-angle, 0deg)) translateY(0); }
-  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--burst-angle, 0deg)) translateY(-16px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .group:hover .signal-burst-tick { animation: none; opacity: 0; }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   PHASE 6C-2 — Composition / Contrast / Spatial Polish
-   不新增特效，只調整可讀性層級、容器邏輯、isolation。
-   只影響 /v2-preview。
-   ───────────────────────────────────────────────────────────── */
-
-/* ── Metadata opacity hierarchy ──────────────────────────────
-   取代過去到處用 archive-600/700 把所有 metadata 壓到同一個暗灰。
-   三層：primary（卡片標題級，必須清楚）/ secondary（ACC、STATE、
-   tag，可辨但不搶戲）/ tertiary（純裝飾性 instruction 文字，最低）。
-   數值刻意比舊的 --color-archive-600/700 系統亮一截。 */
-.lab-meta-primary {
-  color: var(--color-archive-200);
-}
-
-.lab-meta-secondary {
-  color: var(--color-archive-400);
-}
-
-.lab-meta-tertiary {
-  /* Phase 7A 對比修正：原本 archive-600 (#3A3835) 疊在 archive-900 上
-     對比僅約 1.6:1，CLICK TO INSPECT / SPECIMEN LOG / CALIBRATION / footer
-     等真正要讀的提示幾乎不可見。提到 #726E64（約 3.6:1）——仍是三層裡
-     最低調的一層，但不再是接近隱形的裝飾灰 */
-  color: #726E64;
-}
-
-/* Active 卡片內的 metadata 再提高一級，inactive 卡片則維持原階層 */
-.specimen-card.specimen-locked .lab-meta-secondary,
-.specimen-card:focus-within .lab-meta-secondary {
-  color: var(--color-archive-300);
-}
-
-/* ── Active / inactive isolation ──────────────────────────────
-   容器加 .has-active-specimen 時，未展開的卡片退後（降低 opacity，
-   極輕微降低對比，不加 blur——blur 在密集 grid 上容易讓人覺得卡頓） */
-.has-active-specimen .specimen-card:not(.is-active-specimen) {
-  opacity: 0.46;
-  transition: opacity var(--duration-card-reveal) ease;
-}
-
-.specimen-card.is-active-specimen {
-  position: relative;
-  z-index: 5;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .has-active-specimen .specimen-card:not(.is-active-specimen) {
-    transition: none;
-  }
-}
-
-/* ── Scanner line：lock 在標本上時降低亮度，避免文字被掃過變髒 ── */
-.scanner-line-on-specimen {
-  opacity: 0.35 !important;
-  mix-blend-mode: normal !important;
-}
-
-/* ── v2 scoped dark scrollbar — 不污染 production 首頁 ────────────
-   真正捲動的是 <body>（這個路由沒有自己的 overflow 容器），所以用
-   JS 在 /v2-preview mount 時加 class 到 body、unmount 時移除
-   （見 v2-preview/page.tsx 的 useEffect），離開這個路由就完全還原，
-   不影響 production 首頁的瀏覽器預設 scrollbar */
-body.v2-lab-scope {
-  scrollbar-color: var(--color-archive-600) var(--color-archive-900);
-  scrollbar-width: thin;
-}
-
-body.v2-lab-scope::-webkit-scrollbar {
-  width: 10px;
-}
-
-body.v2-lab-scope::-webkit-scrollbar-track {
-  background: var(--color-archive-900);
-}
-
-body.v2-lab-scope::-webkit-scrollbar-thumb {
-  background: var(--color-archive-700);
-  border: 2px solid var(--color-archive-900);
-  border-radius: 6px;
-}
-
-body.v2-lab-scope::-webkit-scrollbar-thumb:hover {
-  background: var(--color-archive-600);
-}
-
-/* ── MaterialBoard — inspection table plane ───────────────────
-   一塊大面積的「檢查台/壓克力板」背景，卡片放在它上面，
-   不是散落卡片牆。比卡片背景稍淺、稍透明，帶極細邊框 */
-.material-tray-plane {
-  position: relative;
-  border: 1px solid var(--color-archive-800);
-  background: linear-gradient(180deg, color-mix(in oklch, var(--color-archive-900) 55%, transparent), transparent 14%);
-  padding: 2.5rem 1.5rem 1.5rem;
-}
-
-.material-tray-plane::before {
-  /* 台面左緣的「軌道」標記，暗示卡片可以在這條軌上被抽取/歸位 */
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 1px;
-  background: var(--color-archive-700);
-  opacity: 0.5;
-}
-
-.specimen-tray-priority-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
+.inspect-obj.is-open .inspect-front-head { transform: translateY(-16px); opacity: 0; }
+.inspect-obj.is-open .inspect-title { transform: translate(-10px, -34px) scale(0.84); opacity: 0.12; }
+.inspect-obj.is-open .inspect-keywords { transform: translateY(34px); opacity: 0; }
+
+.inspect-keywords { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.inspect-kw {
   font-family: var(--font-mono);
   font-size: 0.5rem;
   letter-spacing: 0.14em;
-  color: var(--color-archive-300);
+  text-transform: uppercase;
+  color: var(--color-archive-400);
   border: 1px solid var(--color-archive-700);
-  padding: 0.08rem 0.35rem;
+  padding: 0.12rem 0.4rem;
 }
 
-/* ── 1970s — pinned label chips（取代擠在底部的 tag list） ───── */
-.lab-pinned-chip-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.inspect-cue {
+  position: absolute;
+  bottom: 0.9rem;
+  left: 1.1rem;
+  color: var(--obj-accent);
+  opacity: 0.8;
+  transition: opacity 0.25s;
+}
+.inspect-obj.is-open .inspect-cue { opacity: 1; }
+
+/* material texture 層 — 各 skin override */
+.inspect-material {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
-.lab-pinned-chip {
-  align-self: flex-start;
-  background: var(--color-archive-100);
-  color: var(--color-archive-black);
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  letter-spacing: 0.08em;
-  padding: 0.16rem 0.5rem;
-  transform: rotate(var(--chip-tilt, -1deg));
-  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* Staple——放大、提高對比，不再是幾乎看不見的細線 */
-.specimen-staple {
-  top: -3px;
-  left: 16px;
-  width: 14px;
-  height: 6px;
-  border-top: 3px solid var(--color-archive-300);
-  opacity: 0.85;
-}
-
-/* ── 2010s — signal rail，填補 stack 右側空白 ─────────────────── */
-.signal-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  padding-left: 1.25rem;
-  border-left: 1px solid var(--line-color);
-}
-
-.signal-rail-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  /* 冷灰 idle，與 signal red 的 active 行形成冷暖層級；字級略放大讓
-     位址 / 狀態文字在 archive-900 上可讀 */
-  color: var(--color-signal-idle);
-}
-
-.signal-rail-row-active {
-  color: var(--color-era-10);
-}
-
-.signal-rail-trace {
-  flex: 1;
+/* hover scan line — 掃過物件一次的 accent 細線（hover 觸發 CSS animation） */
+.inspect-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
   height: 1px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-archive-700) 0px,
-    var(--color-archive-700) 3px,
-    transparent 3px,
-    transparent 6px
-  );
+  background: var(--obj-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.inspect-obj:hover .inspect-scanline {
+  animation: inspect-scan 0.7s var(--ease-archive);
+}
+@keyframes inspect-scan {
+  0% { top: 0; opacity: 0.7; }
+  100% { top: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inspect-obj:hover .inspect-scanline { animation: none; }
 }
 
-.signal-rail-trace-active {
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-era-10) 0px,
-    var(--color-era-10) 3px,
-    transparent 3px,
-    transparent 6px
-  );
-  opacity: 0.7;
+/* REVEAL — material readout，從底部拉開 */
+.inspect-readout {
+  position: absolute;
+  inset: 0;
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  z-index: 2;
+  background: linear-gradient(180deg,
+    color-mix(in oklch, var(--color-archive-900) 60%, transparent) 0%,
+    color-mix(in oklch, var(--color-archive-900) 94%, transparent) 42%);
+  backdrop-filter: blur(2px);
+  /* iris：從中心方框展開，不是底部滑入 */
+  clip-path: inset(46% 46% 46% 46%);
+  opacity: 0;
+  transition: clip-path var(--duration-card-reveal) var(--ease-archive),
+    opacity calc(var(--duration-card-reveal) * 0.5) ease;
+  pointer-events: none;
+}
+.inspect-obj.is-open .inspect-readout {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+/* 拆片層：三塊紙樣裁片，開啟時從中心往外散開（exploded pattern pieces） */
+.inspect-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.inspect-obj.is-open .inspect-pattern { opacity: 0.5; }
+.pattern-piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38%;
+  height: 42%;
+  border: 1px solid var(--obj-accent);
+  background: color-mix(in oklch, var(--obj-accent) 5%, transparent);
+  transform: translate(-50%, -50%) scale(0.6);
+  transition: transform var(--duration-card-reveal) var(--ease-archive);
+}
+.pattern-piece-1 { clip-path: polygon(0 0, 100% 12%, 88% 100%, 8% 86%); }
+.pattern-piece-2 { clip-path: polygon(12% 0, 100% 0, 100% 88%, 0 100%); }
+.pattern-piece-3 { clip-path: polygon(0 14%, 90% 0, 100% 100%, 16% 92%); }
+.inspect-obj.is-open .pattern-piece-1 { transform: translate(-128%, -120%) scale(0.86) rotate(-8deg); }
+.inspect-obj.is-open .pattern-piece-2 { transform: translate(40%, -96%) scale(0.78) rotate(6deg); }
+.inspect-obj.is-open .pattern-piece-3 { transform: translate(-30%, 44%) scale(0.92) rotate(4deg); }
+@media (prefers-reduced-motion: reduce) {
+  .inspect-pattern, .pattern-piece { transition: none; }
 }
 
-/* ── EntryLab control panel — 取代空洞的 sidebar ──────────────── */
-.lab-control-panel-status {
+/* 拆解 cut line：開啟瞬間一條 accent 橫線掃過（物件被切開的剖面感） */
+.inspect-readout::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  background: var(--obj-accent);
+  transform: scaleX(0);
+  transition: transform var(--duration-card-reveal) var(--ease-archive);
+}
+.inspect-obj.is-open .inspect-readout::before { transform: scaleX(1); }
+.inspect-readout-rule {
+  position: absolute;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--obj-accent);
+  transition: width var(--duration-card-reveal) var(--ease-archive) 0.1s;
+}
+.inspect-obj.is-open .inspect-readout-rule { width: 100%; }
+
+.inspect-statement {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1rem, 1.5vw, 1.4rem);
+  line-height: 1.15;
+  color: var(--color-archive-100);
+}
+.inspect-context {
+  max-height: 8.5rem;
+  overflow: auto;
+}
+.inspect-source {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line-color);
+  padding-top: 0.5rem;
+}
+.inspect-source-cat {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.12em;
-  color: var(--color-era-20);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid;
+  padding: 0.1rem 0.4rem;
+}
+.inspect-source-text {
+  color: var(--color-archive-500);
+  font-size: 0.52rem;
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: reduce) {
+  .inspect-readout, .inspect-readout-rule { transition: none; }
 }
 
-.lab-control-panel-status::before {
+/* ── SKIN: pin（1970s）— 撕邊紙片 + 圖釘 + 套印錯位質感 ── */
+.inspect-pin {
+  clip-path: polygon(0 0, 100% 0, 100% 94%, 92% 100%, 74% 95%, 54% 100%, 34% 95%, 14% 100%, 0 96%);
+}
+.inspect-pin .inspect-material {
+  background-image: radial-gradient(circle, rgba(10,9,6,0.5) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+  opacity: 0.18;
+}
+.inspect-pin::before {
   content: '';
-  width: 5px;
-  height: 5px;
+  position: absolute;
+  top: 7px; left: 50%;
+  width: 8px; height: 8px;
   border-radius: 50%;
-  background: var(--color-era-20);
+  background: var(--obj-accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  transform: translateX(-50%);
+  z-index: 3;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .lab-control-panel-status::before {
-    animation: signal-pulse 1.8s ease-in-out infinite;
-  }
+/* ── SKIN: plate（1980s）— 高光金屬板，gloss sweep ── */
+.inspect-plate {
+  border-width: 1px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 30%),
+    color-mix(in oklch, rgb(var(--surface-tint)) 70%, var(--color-archive-900));
 }
-
-.lab-control-panel-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 14px;
+.inspect-plate .inspect-material {
+  background: linear-gradient(105deg, transparent 35%, color-mix(in oklch, var(--obj-accent) 14%, transparent) 50%, transparent 65%);
+  opacity: 0.6;
 }
+.inspect-plate .inspect-title { font-style: normal; font-weight: 400; letter-spacing: 0; }
 
-.lab-control-panel-bar {
-  width: 3px;
-  background: var(--color-archive-500);
+/* ── SKIN: margin（1990s）— 極簡留白，僅左側髮絲線 ── */
+.inspect-margin {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--color-archive-700);
+  padding-left: 1.4rem;
+  min-height: 9rem;
+}
+.inspect-margin:hover,
+.inspect-margin:focus-visible { border-left-color: var(--obj-accent); }
+.inspect-margin.is-open { box-shadow: none; }
+.inspect-margin .inspect-readout { background: var(--color-archive-black); }
+.inspect-margin .inspect-title { color: var(--color-archive-200); }
+
+/* ── SKIN: crop（2000s）— tabloid 過曝裁切，輕微旋轉重疊 ── */
+.inspect-crop {
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 80%, var(--color-archive-900));
+}
+.inspect-crop .inspect-material {
+  background:
+    linear-gradient(120deg, color-mix(in oklch, var(--obj-accent) 20%, transparent), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 4px);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+}
+.inspect-crop .inspect-title { color: var(--color-archive-white); }
+
+/* ── SKIN: signal（2010s）— 介面式，左 accent 訊號條 ── */
+.inspect-signal {
+  border-left: 3px solid var(--obj-accent);
+  background: color-mix(in oklch, #0c0e13 86%, var(--obj-accent));
+}
+.inspect-signal .inspect-material {
+  background: repeating-linear-gradient(90deg, color-mix(in oklch, var(--obj-accent) 30%, transparent) 0 1px, transparent 1px 7px);
+  opacity: 0.12;
+}
+.inspect-signal .inspect-title { font-style: normal; font-family: var(--font-mono); font-size: clamp(0.9rem,1.3vw,1.2rem); text-transform: uppercase; letter-spacing: -0.01em; }
+
+/* ── SKIN: swatch（2020s）— 材料近攝，厚實低對比，織紋 ── */
+.inspect-swatch {
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 88%, #161410);
+  border-color: var(--color-archive-800);
+}
+.inspect-swatch .inspect-material {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(240,237,230,0.03) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-45deg, rgba(240,237,230,0.02) 0 1px, transparent 1px 5px);
+  opacity: 0.8;
+}
+.inspect-swatch .inspect-title { color: var(--color-archive-200); }
+.inspect-swatch .inspect-material::after {
+  content: '';
+  position: absolute;
+  right: 10px; bottom: 10px;
+  width: 34px; height: 34px;
+  border: 1px solid var(--obj-accent);
+  opacity: 0.4;
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PHASE 7A-2 — PER-ERA SURFACE IDENTITY
-   把 era accent 從小元件（pin / 年份字 / hover 邊框）抬到 section +
-   card + 背景層級。1970s = 暖琥珀 aged-paper；2010s = 冷鋼灰介面 + 紅
-   訊號。目的是讓兩段在「截圖第一眼」就能分辨，同時維持暗色 lab 質感，
-   不做霓虹、不做置中 gradient blob、不做粒子。
-   變數（--era-surface / --era-wash / --era-card-bg / --era-line）由
-   EraLabSection 依 variant 注入，--era-accent 來自 era 資料。
+   ERA SCENE — 六個年代場景 shell + 六種版型語法
    ───────────────────────────────────────────────────────────── */
 
-/* 整個年代區塊換成帶 era 溫度的暗底，取代共用的 archive-black 鷹架 */
-.era-scope {
-  background-color: var(--era-surface, var(--color-archive-black));
-  isolation: isolate;
+.era-scene-section {
+  position: relative;
+  padding: clamp(5rem, 11vw, 11rem) clamp(1.5rem, 5vw, 5rem) clamp(5rem, 11vw, 11rem) clamp(4rem, 8vw, 8rem);
+  border-top: 1px solid var(--line-color);
+  min-height: 96svh;
+  overflow: hidden;
 }
 
-/* 大面積氛圍層：頂緣單向 wash（不是置中 blob），讓 accent 真正佔到
-   背景面積。1970s 暖琥珀、2010s 冷鋼灰，皆極低彩度疊在暗底上 */
-.era-atmosphere {
+/* ── ambient density 層 ── */
+.era-ambient { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.era-ghost-num {
+  position: absolute;
+  right: clamp(-1rem, 1vw, 2rem);
+  bottom: -4vw;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(16rem, 40vw, 44rem);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklch, var(--era-accent) 28%, transparent);
+  opacity: 0.5;
+  user-select: none;
+}
+.era-side-rail {
+  position: absolute;
+  left: clamp(0.8rem, 2.5vw, 2.2rem);
+  top: clamp(5rem, 11vw, 11rem);
+  bottom: clamp(5rem, 11vw, 11rem);
+  width: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.era-side-mech {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--era-accent) 75%, transparent);
+}
+.era-side-ticks {
+  flex: 1;
+  width: 1px;
+  background: var(--line-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+.era-side-tick { width: 6px; height: 1px; background: var(--color-archive-600); }
+.era-side-tick.is-major { width: 12px; background: var(--era-accent); opacity: 0.7; }
+.era-side-index {
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  color: var(--color-archive-500);
+}
+.era-corner { position: absolute; width: 22px; height: 22px; border: 1px solid color-mix(in oklch, var(--era-accent) 40%, transparent); }
+.era-corner-tl { top: 1.5rem; left: 1.5rem; border-width: 1px 0 0 1px; }
+.era-corner-br { right: 1.5rem; bottom: 1.5rem; border-width: 0 1px 1px 0; }
+
+/* header / body 必須在 ambient 之上 */
+.era-head, .era-body { position: relative; z-index: 1; }
+
+/* ── 關聯網覆疊 ── */
+.connector-overlay {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, var(--era-wash) 0%, transparent 42%);
-}
-
-/* section 頂部的歸檔色標——像檔案夾邊緣的彩色 tab，一進區塊就標明年代色 */
-.era-tab {
-  height: 3px;
-  width: clamp(72px, 13vw, 168px);
-  background: var(--era-accent);
-}
-
-/* 年代標題下的 accent 細規線，把 accent 帶進 header 主視覺而非只在小標籤 */
-.era-title-rule {
-  height: 1px;
   width: 100%;
-  max-width: 40rem;
-  background: linear-gradient(90deg, var(--era-accent), transparent 78%);
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+.connector-line {
+  stroke: var(--era-accent);
+  stroke-width: 1;
+  opacity: 0.4;
+  vector-effect: non-scaling-stroke;
+  animation: connector-draw 0.55s var(--ease-archive) forwards;
+}
+@keyframes connector-draw { to { stroke-dashoffset: 0; } }
+.connector-node {
+  fill: var(--era-accent);
   opacity: 0.7;
+  vector-effect: non-scaling-stroke;
+}
+.connector-node-active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .connector-line { animation: none; stroke-dashoffset: 0 !important; }
 }
 
-/* 年代區塊內的標本卡：帶 era 溫度的底 + 靜止狀態就有的 accent 邊，
-   不再是所有 board 共用同一張 archive-900 暗卡。hover/lock 的更亮 accent
-   邊由既有 .specimen-card:hover 規則接手（specificity 較高的內聯 accent
-   仍在），這裡只負責「靜止時就看得到年代色」 */
-.era-scope .specimen-card {
-  background: var(--era-card-bg, var(--color-archive-900));
+/* ── 材料樣本鋪面 ── */
+.era-material-strip {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(3rem, 7vw, 6rem);
+  border-top: 1px solid var(--line-color);
+  padding-top: 1.4rem;
+}
+.era-material-strip-label { color: var(--color-archive-500); display: block; margin-bottom: 1rem; }
+.era-material-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px;
+  background: var(--line-color);
+  border: 1px solid var(--line-color);
+}
+.material-swatch {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 70%, var(--color-archive-900));
+  overflow: hidden;
+  transition: background 0.3s;
+}
+.material-swatch:hover { background: color-mix(in oklch, var(--era-accent) 14%, var(--color-archive-900)); }
+.material-swatch-weave { position: absolute; inset: 0; opacity: 0.5; }
+.material-swatch-0 .material-swatch-weave { background-image: repeating-linear-gradient(45deg, rgba(240,237,230,0.06) 0 1px, transparent 1px 5px); }
+.material-swatch-1 .material-swatch-weave { background-image: repeating-linear-gradient(0deg, rgba(240,237,230,0.05) 0 1px, transparent 1px 4px), repeating-linear-gradient(90deg, rgba(240,237,230,0.05) 0 1px, transparent 1px 4px); }
+.material-swatch-2 .material-swatch-weave { background-image: radial-gradient(circle, rgba(240,237,230,0.08) 0.5px, transparent 0.6px); background-size: 5px 5px; }
+.material-swatch-3 .material-swatch-weave { background-image: repeating-linear-gradient(-45deg, color-mix(in oklch, var(--era-accent) 18%, transparent) 0 1px, transparent 1px 6px); }
+.material-swatch-4 .material-swatch-weave { background-image: repeating-linear-gradient(90deg, rgba(240,237,230,0.07) 0 2px, transparent 2px 7px); }
+.material-swatch-label {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.45rem;
+  color: var(--color-archive-300);
+  font-size: 0.52rem;
+}
+.material-swatch::after {
+  content: '';
+  position: absolute;
+  top: 0.4rem; right: 0.4rem;
+  width: 5px; height: 5px;
+  border-top: 1px solid var(--era-accent);
+  border-right: 1px solid var(--era-accent);
+  opacity: 0.5;
 }
 
-.era-warm .specimen-card {
-  border-top: 2px solid color-mix(in oklab, var(--era-accent) 78%, transparent);
+.era-head { margin-bottom: clamp(2.5rem, 5vw, 4.5rem); max-width: 64rem; }
+.era-head-kicker {
+  display: flex;
+  align-items: baseline;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+.era-head-mechanism {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  color: var(--era-accent);
+}
+.era-head-period { color: var(--color-archive-400); }
+.era-head-thesis {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(1.05rem, 1.9vw, 1.55rem);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--color-archive-200);
+  max-width: 44rem;
+  margin-bottom: 1.4rem;
+}
+.era-head-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line-color);
+  padding-top: 0.8rem;
 }
 
-.era-cold .specimen-card {
-  border-left: 2px solid color-mix(in oklab, var(--era-accent) 72%, transparent);
+/* 1970s — pin-board 拼貼：CSS columns 製造自然錯落 */
+.era-body-pinboard {
+  columns: 3;
+  column-gap: 1.6rem;
+}
+.era-body-pinboard .era-obj {
+  break-inside: avoid;
+  margin-bottom: 1.6rem;
+  display: inline-block;
+  width: 100%;
+}
+@media (max-width: 1100px) { .era-body-pinboard { columns: 2; } }
+
+/* 1980s — power columns：剛性等高直欄，刻意高瘦 */
+.era-body-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--line-color);
+  border: 1px solid var(--line-color);
+}
+.era-body-columns .era-obj {
+  min-height: 20rem;
+  border: none;
+}
+
+/* 1990s — void：大留白單欄 */
+.era-body-void {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 7vw, 6.5rem);
+  padding: 2rem 0;
+}
+
+/* 2000s — tabloid：重疊裁切，flex wrap 負 margin 製造堆疊 */
+.era-body-tabloid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: flex-start;
+}
+.era-body-tabloid .era-obj-crop {
+  flex: 0 0 clamp(220px, 28%, 340px);
+  margin-right: -2rem;
+  box-shadow: -8px 8px 24px -10px rgba(0,0,0,0.7);
+}
+
+/* 2010s — feed：ticker + 窄堆疊 */
+.era-body-feed { max-width: 46rem; }
+.feed-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  border-block: 1px solid var(--line-color);
+  padding: 0.5rem 0;
+  margin-bottom: 2rem;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+          mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+.feed-ticker-run {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--era-accent);
+  animation: feed-ticker-scroll 26s linear infinite;
+}
+@keyframes feed-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feed-ticker-run { animation: none; }
+}
+.feed-stack { display: flex; flex-direction: column; }
+.feed-stack .era-obj { margin-top: -0.5rem; }
+.feed-stack .era-obj:first-child { margin-top: 0; }
+
+/* 2020s — silence：少量大物件、超大留白、置中收斂 */
+.era-body-silence {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: clamp(2.5rem, 6vw, 5rem);
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+.era-body-silence .era-obj { min-height: 16rem; }
+
+/* ─────────────────────────────────────────────────────────────
+   CLOSING THESIS — 收束六機制
+   ───────────────────────────────────────────────────────────── */
+
+.closing-thesis {
+  position: relative;
+  padding: clamp(6rem, 14vw, 14rem) clamp(1.5rem, 5vw, 5rem) clamp(3rem, 6vw, 5rem);
+  border-top: 1px solid var(--line-color);
+}
+.closing-kicker { color: var(--color-archive-500); margin-bottom: 2rem; }
+.closing-line {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--color-archive-100);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2em;
+  margin-bottom: 2.5rem;
+}
+.closing-sep {
+  color: var(--era-accent, var(--color-archive-600));
+  margin: 0 0.25em;
+  font-style: normal;
+}
+.closing-body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  line-height: 1.4;
+  color: var(--color-archive-300);
+  max-width: 44rem;
+  margin-bottom: 3.5rem;
+}
+.closing-trace-track {
+  height: 2px;
+  width: 100%;
+  background: var(--line-color);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.closing-trace {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, transparent, var(--color-archive-300));
+  transition: width 0.2s linear;
+}
+.closing-disclaimer {
+  color: #726e64;
+  max-width: 44rem;
+  line-height: 1.6;
 }
 
 
