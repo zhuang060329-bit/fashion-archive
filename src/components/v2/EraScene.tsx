@@ -215,7 +215,9 @@ function ConnectorOverlay({
   })
 
   useEffect(() => {
+    let cancelled = false
     const measure = () => {
+      if (cancelled) return
       const cont = containerRef.current
       if (!cont || !activeId) {
         setGeo((g) => ({ ...g, active: null, others: [] }))
@@ -235,7 +237,10 @@ function ConnectorOverlay({
     }
     measure()
     window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
+    return () => {
+      cancelled = true
+      window.removeEventListener('resize', measure)
+    }
   }, [activeId, containerRef])
 
   if (!geo.active || geo.w === 0) return null

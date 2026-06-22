@@ -14,6 +14,7 @@
 import { useEffect, useRef } from 'react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { pointer, ripples } from './pointerStore'
+import { WebGLShaderBackground } from './WebGLShaderBackground'
 
 // 年代色（RGB），canvas 纖維色相會 lerp 到目前 data-era 對應值。
 // 對齊 globals 的 --color-era-* 但這裡要 numeric 給 canvas 用。
@@ -44,11 +45,6 @@ export function ReactiveArchiveBackground() {
     type Fiber = { x: number; y: number; len: number; ang: number; drift: number; phase: number }
     let fibers: Fiber[] = []
 
-    // 「影片感」墨/布料 veil——大尺度柔性流動色塊，沿緩慢 flow field 漂移，
-    // 以 additive 疊加成流動的紗幕，視覺上像暗處的背景影片，非靜態貼圖。
-    type Blob = { x: number; y: number; r: number; sx: number; sy: number; ph: number }
-    let blobs: Blob[] = []
-
     const seed = () => {
       // 纖維密度依面積，但 cap 住避免大螢幕爆量
       const count = Math.min(110, Math.round((w * h) / 22000))
@@ -59,14 +55,6 @@ export function ReactiveArchiveBackground() {
         ang: Math.random() * Math.PI,
         drift: 0.08 + Math.random() * 0.22,
         phase: Math.random() * Math.PI * 2,
-      }))
-      blobs = Array.from({ length: 6 }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: Math.max(w, h) * (0.22 + Math.random() * 0.26),
-        sx: 0.00018 + Math.random() * 0.0002,
-        sy: 0.00015 + Math.random() * 0.0002,
-        ph: Math.random() * Math.PI * 2,
       }))
     }
 
@@ -103,31 +91,6 @@ export function ReactiveArchiveBackground() {
       const agitation = pointer.speed // 0–1
       const scanning = pointer.scanning
       const now = performance.now()
-
-      // 影片感 veil：大色塊沿 flow field 漂移，additive 疊加成流動紗幕。
-      // scroll 視差：整層隨捲動上移，與前景內容形成深度差。
-      const parY = pointer.scroll * h * 0.25
-      ctx.globalCompositeOperation = 'lighter'
-      for (const b of blobs) {
-        b.ph += 0.004
-        // flow field：以 sin/cos 交織模擬緩慢流動（便宜的 pseudo-noise）
-        b.x += Math.sin(b.y * 0.0016 + b.ph) * 0.5 + Math.cos(now * b.sx) * 0.4
-        b.y += Math.cos(b.x * 0.0016 + b.ph) * 0.4 + Math.sin(now * b.sy) * 0.35
-        if (b.x < -b.r) b.x = w + b.r
-        if (b.x > w + b.r) b.x = -b.r
-        if (b.y < -b.r) b.y = h + b.r
-        if (b.y > h + b.r) b.y = -b.r
-        const drawY = b.y - parY
-        const g = ctx.createRadialGradient(b.x, drawY, 0, b.x, drawY, b.r)
-        g.addColorStop(0, `rgba(${cr | 0},${cg | 0},${cb | 0},0.05)`)
-        g.addColorStop(0.55, `rgba(${cr | 0},${cg | 0},${cb | 0},0.018)`)
-        g.addColorStop(1, 'rgba(0,0,0,0)')
-        ctx.fillStyle = g
-        ctx.beginPath()
-        ctx.arc(b.x, drawY, b.r, 0, Math.PI * 2)
-        ctx.fill()
-      }
-      ctx.globalCompositeOperation = 'source-over'
 
       for (const f of fibers) {
         // 緩慢飄移 + 受游標速度擾動的角度抖動
@@ -226,6 +189,7 @@ export function ReactiveArchiveBackground() {
   return (
     <div className="archive-bg" aria-hidden="true">
       <div className="archive-bg-base" />
+      <WebGLShaderBackground />
       <canvas ref={canvasRef} className="archive-bg-canvas" />
       <div className="archive-bg-bloom" />
       <div className="archive-bg-grain" />
