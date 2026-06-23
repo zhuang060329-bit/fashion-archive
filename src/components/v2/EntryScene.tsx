@@ -29,7 +29,21 @@ export function EntryScene() {
         return
       }
 
-      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } })
+      // boot sequence：background wake（背景由暗緩亮）+ title chromatic resolve
+      // （殘影由散到聚）+ decade nav unlock（索引條由鎖定灰到可點）。
+      const root = document.documentElement
+      root.classList.add('boot-running')
+      gsap.set(root, { '--boot-chroma': 1 })
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'power4.out' },
+        onComplete: () => root.classList.remove('boot-running'),
+      })
+
+      // chromatic resolve：紅/青殘影偏移量由 1 收斂到 0（與標題顯影同步）
+      tl.to(root, { '--boot-chroma': 0, duration: 1.2, ease: 'power2.out' }, 0.25)
+      // nav unlock：boot 尾段解除索引條鎖定（CSS 過渡到可點亮度）
+      tl.add(() => root.classList.remove('boot-running'), 1.7)
 
       // 0. 進站 scan beam 由上往下掃過一次
       if (beamRef.current) {
@@ -77,6 +91,9 @@ export function EntryScene() {
           },
         })
       }
+
+      // 卸載安全：boot 中途卸載也要清掉 root class
+      return () => document.documentElement.classList.remove('boot-running')
     },
     { scope: rootRef, dependencies: [prefersReduced] },
   )

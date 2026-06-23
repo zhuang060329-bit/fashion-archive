@@ -114,6 +114,30 @@ export function EraScene({ era }: { era: Era }) {
         scrollTrigger: { trigger: rootRef.current, start: 'top 75%' },
       })
 
+      // 各年代專屬「轉場 moment」：大標題以不同語法進場（signature C）
+      const titleTrig = { trigger: rootRef.current, start: 'top 72%' }
+      const title = '.era-head-mechanism'
+      switch (era.id) {
+        case '1970s': // 撕開 / 套印錯位：skew + 旋轉抖落
+          gsap.from(title, { opacity: 0, yPercent: 14, rotateZ: -2.5, skewX: 9, transformOrigin: 'left top', duration: 0.85, ease: 'power4.out', scrollTrigger: titleTrig })
+          break
+        case '1990s': // 擦除到留白的反向：字距由極寬收斂、慢長 fade（refusal）
+          gsap.from(title, { opacity: 0, letterSpacing: '0.5em', filter: 'blur(6px)', duration: 1.5, ease: 'power2.out', scrollTrigger: titleTrig })
+          break
+        case '2010s': { // feed signal glitch：進場時水平抖動 + 不透明閃爍
+          const tl = gsap.timeline({ scrollTrigger: titleTrig })
+          tl.from(title, { opacity: 0, duration: 0.18 })
+            .fromTo(title, { x: -16 }, { x: 7, duration: 0.06 })
+            .to(title, { x: -5, duration: 0.05 })
+            .to(title, { x: 3, opacity: 0.7, duration: 0.05 })
+            .to(title, { x: 0, opacity: 1, duration: 0.12, ease: 'power2.out' })
+          break
+        }
+        case '2000s': // 過曝 flash：scale + 亮度一閃落定
+          gsap.from(title, { opacity: 0, scale: 1.06, filter: 'brightness(2.2)', duration: 0.5, ease: 'power2.out', scrollTrigger: titleTrig })
+          break
+      }
+
       // 各年代專屬 motion grammar（物件層）
       const objs = '.era-obj'
       const common = { scrollTrigger: { trigger: '.era-body', start: 'top 78%' } }
@@ -167,6 +191,9 @@ export function EraScene({ era }: { era: Era }) {
         <div className="era-corner era-corner-br" />
       </div>
 
+      {/* material sample 驅動的環境層——hover 樣本時淡入放大織紋 + accent 光 */}
+      <div className="era-material-env" aria-hidden="true" />
+
       {/* 標頭 shell */}
       <header className="era-head">
         <div className="era-head-line era-head-kicker">
@@ -189,10 +216,34 @@ export function EraScene({ era }: { era: Era }) {
       <ConnectorOverlay containerRef={rootRef} activeId={activeId} />
 
       {/* 材料鋪面——把年代 visualKeywords 變成可掃描的織紋樣本，
-          填滿底部空白且讓「材料」在畫面上實際存在 */}
-      <EraMaterialStrip keywords={era.visualKeywords} />
+          填滿底部空白且讓「材料」在畫面上實際存在。每個年代不同形態。 */}
+      <EraMaterialStrip keywords={era.visualKeywords} skin={skin} />
     </section>
   )
+}
+
+/* 樣本 hover 時驅動 section 環境：放大織紋 + accent 光淡入該年代背景。
+   純 DOM 操作（不觸發 React render），對齊 InspectableObject 的手感寫法。 */
+const MAT_WEAVE: string[] = [
+  'repeating-linear-gradient(45deg, rgba(240,237,230,0.05) 0 2px, transparent 2px 11px)',
+  'repeating-linear-gradient(0deg, rgba(240,237,230,0.045) 0 2px, transparent 2px 9px), repeating-linear-gradient(90deg, rgba(240,237,230,0.045) 0 2px, transparent 2px 9px)',
+  'radial-gradient(circle, rgba(240,237,230,0.07) 1px, transparent 1.4px)',
+  'repeating-linear-gradient(-45deg, color-mix(in oklch, var(--era-accent) 16%, transparent) 0 2px, transparent 2px 13px)',
+  'repeating-linear-gradient(90deg, rgba(240,237,230,0.06) 0 3px, transparent 3px 15px)',
+]
+function applyMatEnv(target: HTMLElement, idx: number, on: boolean) {
+  const section = target.closest<HTMLElement>('.era-scene-section')
+  if (!section) return
+  if (!on) {
+    section.removeAttribute('data-mat-active')
+    return
+  }
+  const r = section.getBoundingClientRect()
+  const sr = target.getBoundingClientRect()
+  section.style.setProperty('--mat-weave', MAT_WEAVE[idx % MAT_WEAVE.length])
+  section.style.setProperty('--mat-x', `${(((sr.left + sr.width / 2) - r.left) / r.width) * 100}%`)
+  section.style.setProperty('--mat-y', `${(((sr.top + sr.height / 2) - r.top) / r.height) * 100}%`)
+  section.setAttribute('data-mat-active', 'true')
 }
 
 /* 關聯網覆疊：展開物件時量測同 section 內所有物件中心，從 active 物件
@@ -273,11 +324,14 @@ function ConnectorOverlay({
   )
 }
 
-/* 材料樣本鋪面：每個 keyword 一塊生成織紋，cursor 掃過觸發背景 ripple */
-function EraMaterialStrip({ keywords }: { keywords: string[] }) {
-  const swatches = keywords.slice(0, 8)
+/* 材料樣本鋪面：每個 keyword 一塊生成織紋。每個年代不同形態（pin / signal /
+   swatch / 預設 grid），hover 樣本驅動 section 環境材質光（signature B）。 */
+function EraMaterialStrip({ keywords, skin }: { keywords: string[]; skin: InspectSkin }) {
+  // 2010s receipt / 2020s slab 用較少、較大的樣本，其餘維持鋪面
+  const count = skin === 'signal' ? 5 : skin === 'swatch' ? 4 : 8
+  const swatches = keywords.slice(0, count)
   return (
-    <div className="era-material-strip">
+    <div className={`era-material-strip era-material-strip--${skin}`}>
       <span className="era-material-strip-label type-mono-xs">MATERIAL SAMPLES</span>
       <div className="era-material-swatches">
         {swatches.map((kw, i) => (
@@ -286,6 +340,8 @@ function EraMaterialStrip({ keywords }: { keywords: string[] }) {
             className={`material-swatch material-swatch-${i % 5}`}
             data-lens="inspect"
             data-lens-label={`SWATCH · ${kw.toUpperCase()}`}
+            onPointerEnter={(e) => applyMatEnv(e.currentTarget, i, true)}
+            onPointerLeave={(e) => applyMatEnv(e.currentTarget, i, false)}
           >
             <span className="material-swatch-weave" aria-hidden="true" />
             <span className="material-swatch-label type-mono-xs">{kw}</span>

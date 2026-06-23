@@ -23,7 +23,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useIsCoarsePointer } from '@/hooks/useDesktopViewport'
 import { pointer, triggerRipple } from './pointerStore'
 
-type LensState = 'idle' | 'hover' | 'scan' | 'pull' | 'press'
+type LensState = 'idle' | 'hover' | 'scan' | 'lock' | 'pull' | 'press'
 
 export function ArchiveLens() {
   const prefersReduced = useReducedMotion()
@@ -48,6 +48,13 @@ export function ArchiveLens() {
 
     let state: LensState = 'idle'
     let target: HTMLElement | null = null
+    let lockTimer: ReturnType<typeof setTimeout> | null = null
+    let lockedEl: HTMLElement | null = null
+
+    const clearLock = () => {
+      if (lockTimer) { clearTimeout(lockTimer); lockTimer = null }
+      if (lockedEl) { lockedEl.classList.remove('is-locked'); lockedEl = null }
+    }
 
     // 框體目標值（quickTo 負責插值，這裡只算目標）
     let tx = pointer.lx
@@ -68,6 +75,8 @@ export function ArchiveLens() {
       const host = el?.closest<HTMLElement>('[data-lens]') ?? null
       if (host === target) return
       target = host
+      // 換目標就清掉上一個鎖定（計時器 + .is-locked）
+      clearLock()
 
       if (host && host.dataset.lens === 'inspect') {
         labelText.textContent = host.dataset.lensLabel ?? 'INSPECT'
@@ -84,6 +93,18 @@ export function ArchiveLens() {
           sweepRef.current.classList.add('lens-sweep-run')
         }
         setState('scan')
+        // 停留 420ms 仍在此物件 → 升級為 lock（signature A）：
+        // cursor aperture 收緊 + object .is-locked（accent 框 + 檢測括號）+
+        // 背景再觸一次 ripple，三者同步。
+        const lockHost = host
+        lockTimer = setTimeout(() => {
+          if (target !== lockHost) return
+          lockHost.classList.add('is-locked')
+          lockedEl = lockHost
+          setState('lock')
+          const rr = lockHost.getBoundingClientRect()
+          triggerRipple(rr.left + rr.width / 2, rr.top + rr.height / 2)
+        }, 420)
       } else if (host && host.dataset.lens === 'pull') {
         labelText.textContent = host.dataset.lensLabel ?? 'DRAG'
         label.dataset.show = 'true'
@@ -104,7 +125,7 @@ export function ArchiveLens() {
       evalTarget(e.target as HTMLElement | null)
     }
     const onDown = () => {
-      if (state !== 'scan' && state !== 'pull') setState('press')
+      if (state !== 'scan' && state !== 'pull' && state !== 'lock') setState('press')
       frame.dataset.pressed = 'true'
     }
     const onUp = () => {
@@ -142,7 +163,7 @@ export function ArchiveLens() {
 
     let raf = 0
     const tick = () => {
-      if (state === 'scan' && target) {
+      if ((state === 'scan' || state === 'lock') && target) {
         // 磁吸：框 morph 到目標邊界，但中心「呼吸」式偏向游標當前位置，
         // 不死鎖在幾何中心——讓吸附跟著你的意圖走，更絲滑
         const r = target.getBoundingClientRect()
@@ -180,6 +201,7 @@ export function ArchiveLens() {
       document.documentElement.removeEventListener('pointerleave', onLeaveDoc)
       document.documentElement.removeEventListener('pointerenter', onEnterDoc)
       cancelAnimationFrame(raf)
+      clearLock()
       gsap.killTweensOf([frame, label, dot].filter(Boolean) as Element[])
       root.removeAttribute('data-lens')
     }

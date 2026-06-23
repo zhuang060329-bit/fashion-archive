@@ -898,12 +898,12 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
 .inspect-keywords { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .inspect-kw {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.14em;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-archive-400);
-  border: 1px solid var(--color-archive-700);
-  padding: 0.12rem 0.4rem;
+  color: var(--color-archive-300);
+  border: 1px solid var(--color-archive-600);
+  padding: 0.14rem 0.42rem;
 }
 
 .inspect-cue {
@@ -1032,8 +1032,14 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
   color: var(--color-archive-100);
 }
 .inspect-context {
-  max-height: 8.5rem;
-  overflow: auto;
+  /* 不再內部捲動（移除原生白色 scrollbar）。改用行數截斷：卡內只顯示
+     readout 預覽，完整文本在 scan-lock 後的 inspection layer 呈現 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+  color: var(--color-archive-200);
 }
 .inspect-source {
   display: flex;
@@ -1052,9 +1058,10 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
   padding: 0.1rem 0.4rem;
 }
 .inspect-source-text {
-  color: var(--color-archive-500);
-  font-size: 0.52rem;
-  line-height: 1.4;
+  color: var(--color-archive-300);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
 }
 @media (prefers-reduced-motion: reduce) {
   .inspect-readout, .inspect-readout-rule { transition: none; }
@@ -1162,7 +1169,10 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
   padding: clamp(5rem, 11vw, 11rem) clamp(1.5rem, 5vw, 5rem) clamp(5rem, 11vw, 11rem) clamp(4rem, 8vw, 8rem);
   border-top: 1px solid var(--line-color);
   min-height: 96svh;
-  overflow: hidden;
+  /* overflow: clip + clip-margin —— 仍包住巨型 ghost 數字，但允許 pinboard /
+     tabloid 的旋轉與位移卡片在邊界外微量溢出 2.5rem，不再被硬切掉頂部 */
+  overflow: clip;
+  overflow-clip-margin: 2.5rem;
 }
 
 /* ── ambient density 層 ── */
@@ -1242,7 +1252,7 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
 .connector-line {
   stroke: var(--era-accent);
   stroke-width: 1;
-  opacity: 0.4;
+  opacity: 0.2;
   vector-effect: non-scaling-stroke;
   animation: connector-draw 0.55s var(--ease-archive) forwards;
 }
@@ -1291,8 +1301,9 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
   position: absolute;
   left: 0.5rem;
   bottom: 0.45rem;
-  color: var(--color-archive-300);
-  font-size: 0.52rem;
+  color: var(--color-archive-200);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
 }
 .material-swatch::after {
   content: '';
@@ -1484,6 +1495,269 @@ html[data-era='2020s'] .scroll-rail-era-2020s .scroll-rail-label {
   color: #726e64;
   max-width: 44rem;
   line-height: 1.6;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   PHASE 7A-3 — interaction / layout / readability / signature refinement
+   獨立區塊，方便整段檢視 / 回退。涵蓋：
+   · 自訂暗色 scrollbar（消滅原生白色 scrollbar）
+   · 1980s power-column stage surface（消除大灰 placeholder 感）
+   · scan→lock 鎖定狀態（cursor / object / 背景同步）
+   · inspection layer（被檢測出的內容感，非 tooltip）
+   · material sample 驅動 section 環境（hover 改變材質光）
+   · 每年代不同的 material sample 形態
+   · 2010s 印刷紅 / DHL-label（非 debug 警報）
+   · hero boot sequence 支援
+   ═════════════════════════════════════════════════════════════ */
+
+/* ── 自訂暗色 scrollbar：全站消滅原生白色 scrollbar ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-archive-600) transparent;
+}
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: var(--color-archive-900); }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-archive-600);
+  border: 2px solid var(--color-archive-900);
+  border-radius: 6px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-archive-500); }
+*::-webkit-scrollbar-corner { background: var(--color-archive-900); }
+
+/* ── 1980s power-column stage surface ──
+   原本 .era-body-columns 是一塊扁平 line-color 灰底 + 高瘦空板，讀起來像未完成
+   placeholder。改成「shoulder architecture」剛性舞台面：硬幾何直紋 + gloss 高光帶 +
+   明確邊界，讓它有材質與功能理由，不再是空灰塊。 */
+.era-body-columns {
+  background:
+    repeating-linear-gradient(90deg,
+      color-mix(in oklch, var(--era-accent) 8%, transparent) 0 1px,
+      transparent 1px 64px),
+    linear-gradient(180deg,
+      color-mix(in oklch, rgb(var(--surface-tint)) 78%, var(--color-archive-900)) 0%,
+      var(--color-archive-900) 100%);
+  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--era-accent) 22%, transparent);
+}
+.era-body-columns .era-obj {
+  min-height: 17rem; /* 收窄空板高度，減少內部空灰 */
+  position: relative;
+}
+/* 寬肩輪廓線：每欄頂一道粗 accent 橫條（shoulder line） */
+.era-body-columns .inspect-plate .inspect-front-head {
+  border-top: 2px solid color-mix(in oklch, var(--era-accent) 60%, transparent);
+  padding-top: 0.7rem;
+}
+
+/* ── scan → lock：hover 停留後鎖定（signature A）──
+   ArchiveLens 在目標上停留 ~420ms 後寫 data-lens="lock" 並給目標 .is-locked。
+   鎖定時：lens 角括號再縮 + accent 提亮；object 邊框 accent + 內部掃描定格；
+   cursor aperture、annotation、surface 同步反應。 */
+.archive-lens[data-state='lock'] .lens-corner {
+  width: 14px;
+  height: 14px;
+  border-color: var(--era-accent);
+}
+.archive-lens[data-state='lock'] { filter: brightness(1.25); }
+.archive-lens[data-state='lock'] .lens-cross { opacity: 0; }
+.archive-lens[data-state='lock'] .lens-sweep { opacity: 0; }
+
+.inspect-obj.is-locked {
+  border-color: var(--obj-accent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--obj-accent) 55%, transparent),
+    0 0 36px -8px color-mix(in oklch, var(--obj-accent) 45%, transparent);
+}
+/* 鎖定時四角檢測括號浮現（被儀器框住的感覺） */
+.inspect-obj.is-locked::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  z-index: 3;
+  background:
+    linear-gradient(var(--obj-accent), var(--obj-accent)) left top,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) left top,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) right top,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) right top,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) left bottom,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) left bottom,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) right bottom,
+    linear-gradient(var(--obj-accent), var(--obj-accent)) right bottom;
+  background-repeat: no-repeat;
+  background-size: 12px 1px, 1px 12px;
+  opacity: 0.9;
+  animation: lock-bracket-in 0.3s var(--ease-archive);
+}
+@keyframes lock-bracket-in { from { opacity: 0; inset: 12px; } to { opacity: 0.9; inset: 6px; } }
+@media (prefers-reduced-motion: reduce) {
+  .inspect-obj.is-locked::before { animation: none; }
+}
+
+/* ── inspection layer：被檢測出的內容感（Section 七）──
+   在既有 .inspect-readout（iris 展開）上加：頂部 DETECTED 標記 + scan 掃描帶，
+   讓展開讀數像「儀器讀出」而非 modal/tooltip。 */
+.inspect-readout::after {
+  content: 'DETECTED';
+  position: absolute;
+  top: 0.7rem;
+  right: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.24em;
+  color: var(--obj-accent);
+  opacity: 0;
+  transition: opacity 0.4s ease 0.2s;
+}
+.inspect-obj.is-open .inspect-readout::after { opacity: 0.85; }
+
+/* ── material sample 驅動 section 環境（signature B）──
+   每個 EraScene 內含一層 .era-material-env（在 ambient 之上、content 之下）。
+   hover material sample 時，JS 給 section data-mat-active + 設 --mat-weave，
+   這層淡入該樣本的放大織紋 + accent 光，section 背景材質明顯改變。 */
+.era-material-env {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-archive);
+  mix-blend-mode: screen;
+  background:
+    var(--mat-weave, none),
+    radial-gradient(60% 50% at var(--mat-x, 50%) var(--mat-y, 60%),
+      color-mix(in oklch, var(--era-accent) 18%, transparent), transparent 70%);
+}
+.era-scene-section[data-mat-active='true'] .era-material-env { opacity: 0.55; }
+@media (prefers-reduced-motion: reduce) {
+  .era-material-env { transition: none; }
+}
+
+/* ── 每年代不同的 material sample 形態（Section 四）──
+   預設仍是精煉 grid；1970s pinned torn、2010s receipt/label、2020s large slab
+   三種明顯不同形態。 */
+
+/* 1970s — pinned torn swatches：撕邊、旋轉、圖釘 */
+.era-material-strip--pin .era-material-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem 1.1rem;
+  background: none;
+  border: none;
+  padding-top: 0.6rem;
+}
+.era-material-strip--pin .material-swatch {
+  flex: 0 0 clamp(120px, 15vw, 168px);
+  aspect-ratio: 5 / 4;
+  border: 1px solid var(--color-archive-600);
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 74%, var(--color-archive-900));
+  transform: rotate(var(--pin-rot, -2deg));
+  clip-path: polygon(0 0, 100% 0, 100% 90%, 86% 100%, 60% 94%, 34% 100%, 10% 95%, 0 99%);
+  box-shadow: 2px 5px 14px -8px rgba(0,0,0,0.8);
+}
+.era-material-strip--pin .material-swatch:nth-child(odd)  { --pin-rot: 2.4deg; }
+.era-material-strip--pin .material-swatch:nth-child(3n)   { --pin-rot: -3.2deg; margin-top: 1.4rem; }
+.era-material-strip--pin .material-swatch::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 50%;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--era-accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+/* 2010s — receipt / label / tag：DHL-label 風，印刷紅，drop-queue 編碼 */
+.era-material-strip--signal .era-material-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: none;
+  border: 1px solid var(--color-archive-700);
+}
+.era-material-strip--signal .material-swatch {
+  aspect-ratio: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px dashed var(--color-archive-700);
+  background: color-mix(in oklch, #0c0e13 88%, var(--era-accent));
+  border-left: 4px solid var(--era-accent);
+}
+.era-material-strip--signal .material-swatch:last-child { border-bottom: none; }
+.era-material-strip--signal .material-swatch::before {
+  content: 'DROP ' counter(matq, decimal-leading-zero);
+  counter-increment: matq;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  color: var(--era-accent);
+}
+.era-material-strip--signal .era-material-swatches { counter-reset: matq; }
+.era-material-strip--signal .material-swatch-weave { position: static; flex: 1; height: 10px; opacity: 0.7; }
+.era-material-strip--signal .material-swatch-label {
+  position: static;
+  color: var(--color-archive-200);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.era-material-strip--signal .material-swatch::after { display: none; }
+
+/* 2020s — large tactile slabs：少量大塊、低對比、霧面 */
+.era-material-strip--swatch .era-material-swatches {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+.era-material-strip--swatch .material-swatch {
+  aspect-ratio: 16 / 7;
+  background: color-mix(in oklch, rgb(var(--surface-tint)) 90%, #161410);
+}
+.era-material-strip--swatch .material-swatch-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--color-archive-200);
+}
+
+/* ── 2010s 印刷紅修正：把純紅警報感調成印刷紅 / heat-scan / DHL，
+   降低 debug overlay 感（Section 三 2010s）── */
+html[data-era='2010s'] {
+  --era-accent: #d83a2c; /* 略降彩度與亮度，偏印刷紅而非螢光警報紅 */
+}
+.inspect-signal {
+  background:
+    repeating-linear-gradient(0deg,
+      color-mix(in oklch, var(--obj-accent) 6%, transparent) 0 2px,
+      transparent 2px 5px),
+    color-mix(in oklch, #0c0e13 88%, var(--obj-accent));
+}
+.inspect-signal .inspect-front-head {
+  border-bottom: 1px dashed color-mix(in oklch, var(--obj-accent) 40%, transparent);
+  padding-bottom: 0.5rem;
+}
+
+/* ── hero boot sequence 支援（signature D）──
+   進站時 background wake：root 加 .boot-running 時背景 base 由暗緩亮；
+   title chromatic resolve：--boot-chroma 由 1→0 收斂殘影；
+   nav unlock：era-index-rail 由鎖定灰到可點。 */
+html.boot-running .archive-bg-base { opacity: 0.2; }
+html .archive-bg-base { transition: background 1.2s var(--ease-archive), opacity 1.4s var(--ease-archive); }
+.kinetic-glyph::before { transform: translateX(calc(2px + (var(--ptr-speed, 0) + var(--boot-chroma, 0)) * 14px)); }
+.kinetic-glyph::after  { transform: translateX(calc(-2px - (var(--ptr-speed, 0) + var(--boot-chroma, 0)) * 14px)); }
+.era-index-rail { transition: opacity 0.6s var(--ease-archive); }
+html.boot-running .era-index-rail { opacity: 0.35; }
+@media (prefers-reduced-motion: reduce) {
+  html.boot-running .archive-bg-base { opacity: 1; }
+  html.boot-running .era-index-rail { opacity: 1; }
+}
+
+/* ── decade 轉場：標題 clip 支援（JS 用 GSAP 驅動 clip-path/位移，
+   這裡只給 will-change 與 reduced fallback）── */
+.era-head-mechanism { will-change: clip-path, transform, opacity; }
+@media (prefers-reduced-motion: reduce) {
+  .era-head-mechanism { will-change: auto; }
 }
 
 
