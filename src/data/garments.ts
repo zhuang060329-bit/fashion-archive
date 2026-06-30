@@ -34,7 +34,7 @@ export const garments: Garment[] = [
     sourceNotes: [
       {
         claim: 'Brando leather jacket in The Wild One (1953) as fashion reference point',
-        source: 'Widely documented in fashion history; V&A Fashion exhibition records',
+        source: 'V&A Fashion exhibition records',
         year: 1953,
         confidence: 'verified',
       },
@@ -83,7 +83,7 @@ export const garments: Garment[] = [
     sourceNotes: [
       {
         claim: 'Nike Air Jordan 1 introduced 1985; first season included NBA colorway violations',
-        source: 'Nike brand archives; widely documented in sneaker history',
+        source: 'Nike brand archives',
         year: 1985,
         confidence: 'verified',
         notes: 'NBA banned Jordan from wearing the shoe during games due to colorway violations; Nike paid the fine',
@@ -157,7 +157,7 @@ export const garments: Garment[] = [
     sourceNotes: [
       {
         claim: 'Champion reverse weave construction 1938',
-        source: 'Champion brand history; widely documented',
+        source: 'Champion brand history',
         year: 1938,
         confidence: 'verified',
       },
@@ -205,7 +205,7 @@ export const garments: Garment[] = [
     sourceNotes: [
       {
         claim: 'Hermès Birkin designed 1984; named for Jane Birkin',
-        source: 'Hermès brand history; widely documented',
+        source: 'Hermès brand history',
         year: 1984,
         confidence: 'verified',
         notes: 'Design attributed to Jean-Louis Dumas; story of Birkin and Dumas on Paris–London flight is widely reported, though details vary',

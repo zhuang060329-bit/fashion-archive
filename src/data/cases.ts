@@ -123,7 +123,7 @@ export const cases: Case[] = [
     year: 1970,
     brand: 'Kenzo',
     designer: 'Kenzo Takada',
-    statement: 'Tokyo logic in a Paris atelier. Something shifts in the seam.',
+    statement: 'Flat Japanese cutting enters the Paris atelier — the garment drapes past the body instead of carving it.',
     context:
       'Kenzo Takada arrived in Paris in 1965 and opened his first boutique, Jungle Jap, in 1970. His collections introduced bright pattern mixing, layering, and construction approaches that were rooted in Japanese textile traditions and non-European body understanding. His timing — alongside Issey Miyake\'s first Paris show in 1973 and Yohji Yamamoto and Rei Kawakubo\'s Paris debuts in 1981 — constituted a decade-long shift in what the Paris system could accommodate. Kenzo sold his label to LVMH in 1993.',
     sourceNotes: [
@@ -199,7 +199,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Thierry Mugler known for extreme architectural silhouettes through late 1970s and 1980s',
-        source: 'Widely documented in fashion histories; Vogue archives; retrospective at Palais Galliera 2021',
+        source: 'Vogue archives; retrospective at Palais Galliera, 2021',
         confidence: 'verified',
       },
     ],
@@ -220,13 +220,13 @@ export const cases: Case[] = [
     year: 1983,
     brand: 'Chanel',
     designer: 'Karl Lagerfeld',
-    statement: 'The codes survive the designer. The designer amplifies the codes.',
+    statement: 'The quilt, the gilt chain, the interlocked CC — Lagerfeld kept the parts and made the initials the product.',
     context:
       'Karl Lagerfeld was appointed Chanel\'s creative director in 1983, following years in which the house had operated with diminishing fashion authority after Coco Chanel\'s death in 1971. Lagerfeld worked with and expanded Chanel\'s inherited visual language: the interlocking CC, the gilt chain, the bouclé tweed, the quilted leather. The "Classic Flap" bag — featuring the CC turn-lock closure Lagerfeld developed — became distinct from the original 2.55 (introduced by Coco Chanel in February 1955, named for that month and year). By the late 1980s, the CC logo had become one of fashion\'s most legible symbols. Lagerfeld simultaneously designed for Fendi and Chloé while at Chanel, an arrangement unusual in the industry.',
     sourceNotes: [
       {
         claim: 'Lagerfeld appointed Chanel creative director 1983',
-        source: 'Chanel corporate records; Justine Picardie biography; widely documented',
+        source: 'Chanel corporate records; Justine Picardie, Coco Chanel (biography)',
         year: 1983,
         confidence: 'verified',
       },
@@ -364,7 +364,7 @@ export const cases: Case[] = [
     year: 1997,
     brand: 'Comme des Garçons',
     designer: 'Rei Kawakubo',
-    statement: 'What body does the garment presuppose? That question, worn.',
+    statement: 'Gingham padding swells at hip and shoulder — the dress refuses the body fashion assumes.',
     context:
       'Rei Kawakubo\'s Spring/Summer 1997 Comme des Garçons collection presented garments with internal padding that created bulges and protrusions — humps, swellings, asymmetrical growths — at unexpected points on the body. The collection refused the normative body the fashion garment typically presupposes and was received with confusion and hostility by some critics. It has since become a canonical example of fashion as conceptual proposition. The garments were made in gingham fabric, a domestic and humble pattern that amplified the strangeness of the silhouette. The collection is a standard reference in academic fashion studies.',
     sourceNotes: [
@@ -392,13 +392,13 @@ export const cases: Case[] = [
     year: 1995,
     brand: 'Gucci',
     designer: 'Tom Ford',
-    statement: 'Seduction as brand strategy. Luxury rehabilitated through skin.',
+    statement: 'Velvet hipster flares, an open satin shirt — Gucci sells the low cut as the comeback.',
     context:
       'Tom Ford was appointed Gucci\'s creative director in 1994, joining a house that had been commercially troubled through the late 1980s and early 1990s. His Fall/Winter 1995 collection — often cited as Gucci\'s comeback moment — featured velvet hipster flares, satin shirts, precision tailoring, and an explicit sexuality that departed radically from the brand\'s previous direction. The show is widely considered one of the decade\'s most influential. Ford remained at Gucci until 2004, simultaneously creative directing Yves Saint Laurent (acquired by Gucci Group in 1999). He launched his own brand, Tom Ford, in 2005.',
     sourceNotes: [
       {
         claim: 'Tom Ford appointed Gucci creative director 1994',
-        source: 'Gucci corporate records; Tom Ford autobiography references; widely documented',
+        source: 'Gucci corporate records; Tom Ford autobiography',
         year: 1994,
         confidence: 'verified',
       },
@@ -433,7 +433,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Balenciaga City/Motorcycle bag introduced in Fall 2001 collection by Ghesquière',
-        source: 'Balenciaga brand history; widely covered in fashion press; exact collection season occasionally reported as SS2001 or FW2001 in different sources',
+        source: 'Balenciaga brand history; collection season reported as SS2001 or FW2001 across sources',
         year: 2001,
         confidence: 'widely-reported',
         notes: 'Season attribution varies slightly across sources; 2001 year is consistent',
@@ -462,7 +462,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Louis Vuitton × Takashi Murakami Monogram Multicolore introduced 2003',
-        source: 'Louis Vuitton brand records; Takashi Murakami artist records; widely covered',
+        source: 'Louis Vuitton brand records; Takashi Murakami artist records',
         year: 2003,
         confidence: 'verified',
       },
@@ -490,7 +490,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'H&M × Karl Lagerfeld collaboration, November 2004',
-        source: 'H&M press records; Karl Lagerfeld interviews; widely reported as first major fast fashion × luxury collab',
+        source: 'H&M press records; Karl Lagerfeld interviews',
         year: 2004,
         confidence: 'verified',
       },
@@ -517,7 +517,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Rachel Zoe described in fashion press as having a "Zoe Effect" on trends, c.2005–2007',
-        source: 'New York Times, Vogue, InStyle coverage; widely reported',
+        source: 'New York Times, Vogue, InStyle coverage',
         confidence: 'widely-reported',
       },
     ],
@@ -572,7 +572,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Supreme × LV Men\'s SS2017 shown January 2017 in Paris',
-        source: 'Louis Vuitton press; Supreme press; widely covered by fashion, business, and general press',
+        source: 'Louis Vuitton press; Supreme press',
         year: 2017,
         confidence: 'verified',
       },
@@ -606,7 +606,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Balenciaga Triple S introduced Spring 2017 collection',
-        source: 'Balenciaga brand records; widely covered in sneaker and fashion press',
+        source: 'Balenciaga brand records; sneaker and fashion press',
         year: 2017,
         confidence: 'widely-reported',
       },
@@ -633,7 +633,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Off-White × Nike "The Ten" collaboration, September 2017',
-        source: 'Nike press; Off-White press; extensively documented in sneaker and fashion press',
+        source: 'Nike press; Off-White press; sneaker and fashion press coverage',
         year: 2017,
         confidence: 'verified',
       },
@@ -662,7 +662,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Harry Styles British Vogue December 2020 cover; first solo male cover in magazine history',
-        source: 'British Vogue December 2020; widely reported in fashion and general press',
+        source: 'British Vogue, December 2020',
         year: 2020,
         confidence: 'verified',
         notes: 'Photographed by Tyler Mitchell; styled by Camilla Nickerson',
@@ -719,7 +719,7 @@ export const cases: Case[] = [
     sourceNotes: [
       {
         claim: 'Phoebe Philo at Celine 2008–2018',
-        source: 'Celine corporate; widely documented',
+        source: 'Celine corporate records',
         confidence: 'verified',
       },
       {
