@@ -87,6 +87,7 @@ export function EraScene({ era }: { era: Era }) {
   const rootRef = useRef<HTMLElement>(null)
   const prefersReduced = useReducedMotion()
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [panelSide, setPanelSide] = useState<'left' | 'right'>('right')
   const [matActive, setMatActive] = useState(false)
   const mechanism = getMechanism(era.id)
   const skin = ERA_SKIN[era.id] ?? 'plate'
@@ -98,6 +99,15 @@ export function EraScene({ era }: { era: Era }) {
   const activeItem = items.find((it) => it.id === activeId) ?? null
 
   const toggle = (id: string) => setActiveId((cur) => (cur === id ? null : id))
+
+  // 判讀單 dock 在被檢視物件的「反側」，永遠不遮住正在看的物件。
+  useEffect(() => {
+    if (!activeId) return
+    const el = rootRef.current?.querySelector<HTMLElement>(`[data-obj-id="${activeId}"]`)
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    setPanelSide(r.left + r.width / 2 > window.innerWidth * 0.5 ? 'left' : 'right')
+  }, [activeId])
 
   useGSAP(
     () => {
@@ -120,15 +130,63 @@ export function EraScene({ era }: { era: Era }) {
         scrollTrigger: { trigger: rootRef.current, start: 'top bottom', end: 'bottom top', scrub: 1.1 },
       })
 
-      // 標頭通用進場
-      gsap.from('.era-head-line', {
+      // 標頭副層通用進場（機制大標另有各年代專屬轉場，見下）
+      gsap.from('.era-head-period, .era-head-thesis, .era-head-meta', {
         opacity: 0,
-        y: 18,
+        y: 16,
         duration: 0.7,
-        stagger: 0.08,
+        stagger: 0.1,
         ease: 'power3.out',
-        scrollTrigger: { trigger: rootRef.current, start: 'top 75%' },
+        scrollTrigger: { trigger: rootRef.current, start: 'top 72%' },
       })
+
+      // ── 年代轉場 signature：進入每個年代時，巨型機制大標各有不同的「顯影方式」，
+      //    不是統一 fade——撕開 / 肩線擴張 / 擦除 / 曝光閃光 / feed glitch / 沉入材質。
+      const head = { scrollTrigger: { trigger: '.era-head', start: 'top 76%' } }
+      const mech = '.era-head-mechanism'
+      switch (era.id) {
+        case '1970s': // torn — 沿撕裂線由左向右揭露 + 斜切抖動
+          gsap.from(mech, {
+            clipPath: 'inset(0 100% 0 0)', skewX: 7, x: -26, duration: 0.85,
+            ease: 'power4.out', ...head,
+          })
+          break
+        case '1980s': // structure — 從左緣沿肩線橫向擴張（字距收緊→展開）
+          gsap.from(mech, {
+            scaleX: 0.68, opacity: 0, letterSpacing: '-0.14em', transformOrigin: 'left center',
+            duration: 1.0, ease: 'power3.out', ...head,
+          })
+          break
+        case '1990s': // refusal — 極慢自留白中浮現，字距先開後收（被擦除的反向）
+          gsap.from(mech, {
+            opacity: 0, letterSpacing: '0.3em', filter: 'blur(3px)', duration: 1.7,
+            ease: 'power2.out', ...head,
+          })
+          break
+        case '2000s': // image — 過曝閃光：blur + brightness 爆亮後收回（flash 曝光）
+          gsap.fromTo(mech,
+            { opacity: 0, filter: 'blur(16px) brightness(3.2)' },
+            { opacity: 1, filter: 'blur(0px) brightness(1)', duration: 0.6, ease: 'power2.out', ...head },
+          )
+          break
+        case '2010s': // signal — feed glitch：快速 x/skew 抖動 + 透明度閃爍後定位
+          gsap.from(mech, {
+            keyframes: [
+              { x: -10, skewX: 9, opacity: 0.15, duration: 0.08 },
+              { x: 7, skewX: -6, opacity: 0.85, duration: 0.08 },
+              { x: -3, skewX: 3, opacity: 0.6, duration: 0.08 },
+              { x: 0, skewX: 0, opacity: 1, duration: 0.14 },
+            ],
+            ease: 'none', ...head,
+          })
+          break
+        case '2020s': // silence — 沉入材質：自微放大 + blur 緩緩沉降定住
+          gsap.from(mech, {
+            scale: 1.08, opacity: 0, filter: 'blur(7px)', transformOrigin: 'center',
+            duration: 1.6, ease: 'power2.out', ...head,
+          })
+          break
+      }
 
       // 各年代專屬 motion grammar（物件層）
       const objs = '.era-obj'
@@ -220,8 +278,8 @@ export function EraScene({ era }: { era: Era }) {
         onHover={(on) => setMatActive(on)}
       />
 
-      {/* 判讀單——點擊物件後 docked 在右側，把長判讀從小卡片移出來 */}
-      <InspectionPanel item={activeItem} accent="var(--era-accent)" onClose={() => setActiveId(null)} />
+      {/* 判讀單——點擊物件後 docked 在物件反側，把長判讀從小卡片移出來 */}
+      <InspectionPanel item={activeItem} accent="var(--era-accent)" side={panelSide} onClose={() => setActiveId(null)} />
     </section>
   )
 }
