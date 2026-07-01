@@ -1134,16 +1134,50 @@ html[data-lens-locked='true'] .archive-bg-bloom { opacity: 0.9; }
 }
 .inspect-crop .inspect-title { color: var(--color-archive-white); }
 
-/* ── SKIN: signal（2010s）— 介面式，左 accent 訊號條 ── */
+/* ── SKIN: signal（2010s）— 物流標籤 / drop 票券。紅是「印刷墨」不是「警報」：
+   頂部條碼印刷帶 + 右上 DROP 印章 + 細印刷紅底線，取代原本發亮的紅色左框。── */
 .inspect-signal {
-  border-left: 3px solid var(--obj-accent);
-  background: color-mix(in oklch, #0c0e13 86%, var(--obj-accent));
+  border: 1px solid var(--color-archive-700);
+  border-top: 2px solid color-mix(in oklch, var(--obj-accent) 55%, var(--color-archive-600));
+  background:
+    repeating-linear-gradient(0deg, transparent 0 32px, color-mix(in oklch, var(--obj-accent) 6%, transparent) 32px 33px),
+    color-mix(in oklch, #111010 90%, var(--obj-accent));
+  padding-top: 1.9rem;
 }
+/* 頂部條碼印刷帶（灰墨 + 少量紅墨），像貼在包裹上的 courier label */
 .inspect-signal .inspect-material {
-  background: repeating-linear-gradient(90deg, color-mix(in oklch, var(--obj-accent) 30%, transparent) 0 1px, transparent 1px 7px);
-  opacity: 0.12;
+  inset: 0 0 auto 0;
+  height: 16px;
+  opacity: 0.55;
+  background:
+    repeating-linear-gradient(90deg,
+      color-mix(in oklch, var(--color-archive-200) 55%, transparent) 0 1px, transparent 1px 3px,
+      color-mix(in oklch, var(--color-archive-200) 55%, transparent) 3px 4px, transparent 4px 8px),
+    repeating-linear-gradient(90deg,
+      color-mix(in oklch, var(--obj-accent) 60%, transparent) 0 2px, transparent 2px 22px);
+  mix-blend-mode: normal;
 }
-.inspect-signal .inspect-title { font-style: normal; font-family: var(--font-mono); font-size: clamp(0.9rem,1.3vw,1.2rem); text-transform: uppercase; letter-spacing: -0.01em; }
+/* 右上 DROP 印刷紅角章 */
+.inspect-signal .inspect-front-head::after {
+  content: 'DROP QUEUE';
+  position: absolute;
+  top: 1.9rem; right: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.14em;
+  color: color-mix(in oklch, var(--obj-accent) 80%, var(--color-archive-200));
+  border: 1px solid color-mix(in oklch, var(--obj-accent) 55%, transparent);
+  padding: 0.1rem 0.32rem;
+}
+.inspect-signal .inspect-title {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: clamp(0.9rem,1.3vw,1.2rem);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--obj-accent) 35%, var(--line-color));
+}
 
 /* ── SKIN: swatch（2020s）— 材料近攝，厚實低對比，織紋 ── */
 .inspect-swatch {
@@ -1704,7 +1738,6 @@ html[data-lens-locked='true'] .archive-bg-bloom { opacity: 0.9; }
 .inspection-panel {
   position: fixed;
   top: 50%;
-  right: clamp(1.4rem, 3vw, 3.5rem);
   transform: translateY(-50%);
   width: min(30rem, 34vw);
   z-index: 903;
@@ -1712,30 +1745,38 @@ html[data-lens-locked='true'] .archive-bg-bloom { opacity: 0.9; }
   opacity: 0;
   transition: opacity 0.35s var(--ease-archive);
 }
+.inspection-panel[data-side='right'] { right: clamp(1.4rem, 3vw, 3.5rem); left: auto; }
+.inspection-panel[data-side='left']  { left: clamp(1.4rem, 3vw, 3.5rem); right: auto; }
 .inspection-panel.is-open { opacity: 1; pointer-events: auto; }
 
-/* leader line：面板左緣往左拉一條指回被檢視物件方向的細線 + 端點 */
+/* leader line：往被檢視物件方向拉一條細線 + 端點（依 dock 側翻向） */
 .inspection-leader {
   position: absolute;
   top: 50%;
-  right: 100%;
   width: clamp(1.2rem, 4vw, 4rem);
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--panel-accent));
   transform: scaleX(0);
-  transform-origin: right;
   transition: transform 0.45s var(--ease-archive) 0.1s;
+}
+.inspection-panel[data-side='right'] .inspection-leader { right: 100%; transform-origin: right; }
+.inspection-panel[data-side='left'] .inspection-leader {
+  left: 100%;
+  transform-origin: left;
+  background: linear-gradient(270deg, transparent, var(--panel-accent));
 }
 .inspection-panel.is-open .inspection-leader { transform: scaleX(1); }
 .inspection-leader::before {
   content: '';
   position: absolute;
-  left: 0; top: 50%;
+  top: 50%;
   width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--panel-accent);
   transform: translate(-50%, -50%);
 }
+.inspection-panel[data-side='right'] .inspection-leader::before { left: 0; }
+.inspection-panel[data-side='left'] .inspection-leader::before { right: 0; left: auto; transform: translate(50%, -50%); }
 
 .inspection-plate {
   position: relative;

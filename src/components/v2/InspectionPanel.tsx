@@ -17,10 +17,11 @@ import type { InspectItem } from './InspectableObject'
 interface Props {
   item: InspectItem | null
   accent: string
+  side?: 'left' | 'right'
   onClose: () => void
 }
 
-export function InspectionPanel({ item, accent, onClose }: Props) {
+export function InspectionPanel({ item, accent, side = 'right', onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   // Esc 關閉；開啟時把焦點移入面板（鍵盤可達）
@@ -38,6 +39,7 @@ export function InspectionPanel({ item, accent, onClose }: Props) {
     <div
       ref={ref}
       className={`inspection-panel ${item ? 'is-open' : ''}`}
+      data-side={side}
       style={{ '--panel-accent': accent } as React.CSSProperties}
       role="dialog"
       aria-modal="false"
