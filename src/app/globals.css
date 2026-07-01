@@ -1200,6 +1200,86 @@ html[data-lens-locked='true'] .archive-bg-bloom { opacity: 0.9; }
   opacity: 0.4;
 }
 
+/* ═════════════════════════════════════════════════════════════
+   ERA GRAMMAR DEEPENING — 1990s / 2000s / 2020s 各補一個專屬語法元素，
+   讓「refusal / image / silence」三段除了配色外有結構上的差異。純視覺。
+   ═════════════════════════════════════════════════════════════ */
+
+/* ── 1990s Refusal — 「被隱藏的標籤」：每個物件標題上方一道被劃除的墨條，
+   呼應 Margiela 藏標、Lang 拆線；hover 時墨條收起（露出本應在此的空白）。 ── */
+.inspect-margin { padding-top: 1.7rem; }
+.inspect-margin::before {
+  content: '';
+  position: absolute;
+  top: 1.1rem;
+  left: 1.4rem;
+  width: 2.6rem;
+  height: 0.62rem;
+  background: color-mix(in oklch, var(--obj-accent) 22%, var(--color-archive-700));
+  transform-origin: left center;
+  transition: transform 0.4s var(--ease-archive), opacity 0.4s ease;
+}
+.inspect-margin:hover::before,
+.inspect-margin:focus-visible::before { transform: scaleX(0.12); opacity: 0.4; }
+/* 標題下一條極細髮線收口，讓留白「有設計」而不是單純黑 */
+.inspect-margin .inspect-title { position: relative; padding-bottom: 0.7rem; }
+.inspect-margin .inspect-title::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 1.6rem; height: 1px;
+  background: var(--obj-accent);
+  opacity: 0.4;
+}
+@media (prefers-reduced-motion: reduce) {
+  .inspect-margin::before { transition: none; }
+}
+
+/* ── 2000s Image — 「過曝的狗仔照」：off-white 照片邊框 + 一顆會在 hover 綻放
+   的閃光熱點（flash glare），像照片被壓在桌上、閃燈打在左上角。 ── */
+.inspect-crop {
+  border-color: color-mix(in oklch, var(--color-archive-200) 22%, var(--color-archive-700));
+  box-shadow: inset 0 0 0 1px rgba(240,237,230,0.04);
+}
+.inspect-crop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(140px circle at 18% 12%,
+    rgba(255,255,255,0.22), rgba(255,255,255,0.06) 30%, transparent 62%);
+  opacity: 0.25;
+  transition: opacity 0.4s var(--ease-archive);
+}
+.inspect-crop:hover::before,
+.inspect-crop:focus-visible::before { opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) {
+  .inspect-crop::before { transition: none; }
+}
+
+/* ── 2020s Silence — 「近看才顯的觸感」：靜置低對比、霧面；hover 逼近時織紋
+   浮現、內壓出厚料的 emboss、藏起的 no-logo 方框才變清晰（tactile restraint）。 ── */
+.inspect-swatch {
+  transition: border-color 0.3s, transform 0.3s var(--ease-archive),
+    box-shadow 0.45s var(--ease-archive);
+}
+.inspect-swatch .inspect-material { transition: opacity 0.45s var(--ease-archive); }
+.inspect-swatch .inspect-material::after { transition: opacity 0.45s var(--ease-archive), border-color 0.3s; }
+.inspect-swatch:hover,
+.inspect-swatch:focus-visible {
+  box-shadow: inset 0 1px 0 rgba(240,237,230,0.07),
+    inset 0 0 40px -8px rgba(0,0,0,0.7);
+}
+.inspect-swatch:hover .inspect-material,
+.inspect-swatch:focus-visible .inspect-material { opacity: 1; }
+.inspect-swatch:hover .inspect-material::after,
+.inspect-swatch:focus-visible .inspect-material::after { opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) {
+  .inspect-swatch, .inspect-swatch .inspect-material,
+  .inspect-swatch .inspect-material::after { transition: none; }
+}
+
 /* ─────────────────────────────────────────────────────────────
    ERA SCENE — 六個年代場景 shell + 六種版型語法
    ───────────────────────────────────────────────────────────── */
@@ -1612,11 +1692,13 @@ html[data-lens-locked='true'] .archive-bg-bloom { opacity: 0.9; }
 }
 
 /* 1990s — void：大留白單欄 */
+/* 更大留白、更冷、更慢：拉開間距，內容退進單一窄欄，讓空白是刻意的設計 */
 .era-body-void {
   display: flex;
   flex-direction: column;
-  gap: clamp(3rem, 7vw, 6.5rem);
-  padding: 2rem 0;
+  gap: clamp(4rem, 9vw, 8.5rem);
+  padding: 3rem 0 2rem;
+  max-width: 52rem;
 }
 
 /* 2000s — tabloid：重疊裁切，flex wrap 負 margin 製造堆疊 */
