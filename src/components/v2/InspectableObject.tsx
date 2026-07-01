@@ -139,17 +139,17 @@ export function InspectableObject({ item, skin, accent, active, onToggle, classN
         </span>
       </div>
 
-      {/* REVEAL — material readout，位移拉開，不是 tooltip */}
+      {/* REVEAL — 卡片上只保留「標本被打開」的動作 + 引言；長判讀（context /
+          來源）移到右側 InspectionPanel，卡片不再內部滾動、不再出現白色捲軸 */}
       <div className="inspect-readout" aria-hidden={!active}>
         <span className="inspect-readout-rule" aria-hidden="true" />
+        <span className="inspect-source-cat" style={{ borderColor: accent, color: accent }}>
+          {item.sourceCategory}
+        </span>
         <p className="inspect-statement">&ldquo;{item.statement}&rdquo;</p>
-        <p className="type-note inspect-context">{item.context}</p>
-        <div className="inspect-source">
-          <span className="inspect-source-cat" style={{ borderColor: accent, color: accent }}>
-            {item.sourceCategory}
-          </span>
-          {item.source && <span className="type-mono-xs inspect-source-text">{item.source}</span>}
-        </div>
+        <span className="inspect-readout-cue type-mono-xs" style={{ color: accent }}>
+          FULL READOUT →
+        </span>
       </div>
 
       {prefersReduced ? null : <span className="inspect-scanline" aria-hidden="true" />}

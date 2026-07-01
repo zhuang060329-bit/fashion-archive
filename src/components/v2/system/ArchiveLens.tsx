@@ -49,6 +49,17 @@ export function ArchiveLens() {
     let state: LensState = 'idle'
     let target: HTMLElement | null = null
 
+    // dwell-lock：停在可檢視物件 360ms → 進入 locked 狀態（鎖定前的 soft scan
+    // 升級為 hard lock）。lens 框體、物件表面、背景同步反應，提示「可點擊判讀」。
+    let lockTimer: number | null = null
+    let lockedHost: HTMLElement | null = null
+    const clearLock = () => {
+      if (lockTimer !== null) { clearTimeout(lockTimer); lockTimer = null }
+      if (lockedHost) { lockedHost.removeAttribute('data-locked'); lockedHost = null }
+      frame.dataset.locked = 'false'
+      root.removeAttribute('data-lens-locked')
+    }
+
     // 框體目標值（quickTo 負責插值，這裡只算目標）
     let tx = pointer.lx
     let ty = pointer.ly
@@ -63,11 +74,14 @@ export function ArchiveLens() {
     }
     root.setAttribute('data-lens', 'idle')
     frame.dataset.state = 'idle'
+    frame.dataset.locked = 'false'
 
     const evalTarget = (el: HTMLElement | null) => {
       const host = el?.closest<HTMLElement>('[data-lens]') ?? null
       if (host === target) return
       target = host
+      // 目標改變 → 取消上一個 dwell-lock
+      clearLock()
 
       if (host && host.dataset.lens === 'inspect') {
         labelText.textContent = host.dataset.lensLabel ?? 'INSPECT'
@@ -84,6 +98,15 @@ export function ArchiveLens() {
           sweepRef.current.classList.add('lens-sweep-run')
         }
         setState('scan')
+        // 停留 360ms 後升級為 hard lock（物件 + 框體同步進入 locked）
+        lockTimer = window.setTimeout(() => {
+          if (target === host) {
+            host.setAttribute('data-locked', 'true')
+            frame.dataset.locked = 'true'
+            root.setAttribute('data-lens-locked', 'true')
+            lockedHost = host
+          }
+        }, 360)
       } else if (host && host.dataset.lens === 'pull') {
         labelText.textContent = host.dataset.lensLabel ?? 'DRAG'
         label.dataset.show = 'true'
@@ -180,6 +203,7 @@ export function ArchiveLens() {
       document.documentElement.removeEventListener('pointerleave', onLeaveDoc)
       document.documentElement.removeEventListener('pointerenter', onEnterDoc)
       cancelAnimationFrame(raf)
+      clearLock()
       gsap.killTweensOf([frame, label, dot].filter(Boolean) as Element[])
       root.removeAttribute('data-lens')
     }

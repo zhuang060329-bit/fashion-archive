@@ -20,6 +20,7 @@ import { getCasesByEra } from '@/data/cases'
 import { getGarmentsByEra } from '@/data/garments'
 import { getMechanism } from '@/data/thesis'
 import { InspectableObject, type InspectItem, type InspectSkin } from '@/components/v2/InspectableObject'
+import { InspectionPanel } from '@/components/v2/InspectionPanel'
 import type { Era } from '@/data/types'
 import type { Case, CaseType, Garment } from '@/data/types'
 
@@ -70,16 +71,31 @@ function garmentToItem(g: Garment): InspectItem {
   }
 }
 
+// 每個年代一種「材料環境」語法——hover 材料樣本時，整個 section 的背景
+// texture / accent / light 切換成該年代的材料手感（撕裂紙邊 / 柔霧厚重 /
+// 網版錯位 / 霧面柔光…）。這是「material sample drives environment」signature。
+const ERA_MATERIAL_ENV: Record<string, string> = {
+  '1970s': 'torn',
+  '1980s': 'padded',
+  '1990s': 'raw',
+  '2000s': 'flash',
+  '2010s': 'print',
+  '2020s': 'cashmere',
+}
+
 export function EraScene({ era }: { era: Era }) {
   const rootRef = useRef<HTMLElement>(null)
   const prefersReduced = useReducedMotion()
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [matActive, setMatActive] = useState(false)
   const mechanism = getMechanism(era.id)
   const skin = ERA_SKIN[era.id] ?? 'plate'
+  const matEnv = ERA_MATERIAL_ENV[era.id] ?? 'raw'
 
   const cases = getCasesByEra(era.id).map(caseToItem)
   const garments = getGarmentsByEra(era.id).map(garmentToItem)
   const items = [...cases, ...garments]
+  const activeItem = items.find((it) => it.id === activeId) ?? null
 
   const toggle = (id: string) => setActiveId((cur) => (cur === id ? null : id))
 
@@ -148,8 +164,14 @@ export function EraScene({ era }: { era: Era }) {
       ref={rootRef}
       id={`era-${era.id}`}
       className={`era-scene-section era-grammar-${era.id}`}
+      data-mat-env={matEnv}
+      data-mat-active={matActive ? 'true' : 'false'}
       aria-label={`${era.period} — ${mechanism?.mechanism}`}
     >
+      {/* 材料環境層——hover 材料樣本時切換成該年代的材料手感（撕裂 / 厚霧 /
+          網版 / 柔光…），改變整個 section 的 texture 與光，不是只亮一格 swatch */}
+      <div className="era-mat-env" aria-hidden="true" />
+
       {/* ambient density 層——巨型 ghost 年代數字 + 側邊量測軌 + 直書機制詞，
           填滿留白，給每個年代場景空間重量，不是稀疏卡片牆 */}
       <div className="era-ambient" aria-hidden="true">
@@ -185,12 +207,21 @@ export function EraScene({ era }: { era: Era }) {
       {/* body — 六種版型語法 */}
       <EraBody eraId={era.id} items={items} skin={skin} activeId={activeId} onToggle={toggle} />
 
-      {/* 關聯網——展開某物件時，從它拉線到同年代其他物件，組成檔案關聯網 */}
+      {/* 關聯網——展開某物件時，從它拉線到「最近的」幾個同年代物件，
+          線走在物件之下、避開標題，只在縫隙顯現，不成背景噪音 */}
       <ConnectorOverlay containerRef={rootRef} activeId={activeId} />
 
-      {/* 材料鋪面——把年代 visualKeywords 變成可掃描的織紋樣本，
-          填滿底部空白且讓「材料」在畫面上實際存在 */}
-      <EraMaterialStrip keywords={era.visualKeywords} />
+      {/* 材料鋪面——每個年代不同形態（pinned / strips / tags / slab…），
+          hover 樣本驅動整個 section 的材料環境，label 可讀不只是裝飾 */}
+      <EraMaterialStrip
+        eraId={era.id}
+        keywords={era.visualKeywords}
+        material={mechanism?.material}
+        onHover={(on) => setMatActive(on)}
+      />
+
+      {/* 判讀單——點擊物件後 docked 在右側，把長判讀從小卡片移出來 */}
+      <InspectionPanel item={activeItem} accent="var(--era-accent)" onClose={() => setActiveId(null)} />
     </section>
   )
 }
@@ -245,6 +276,10 @@ function ConnectorOverlay({
 
   if (!geo.active || geo.w === 0) return null
   const a = geo.active
+  // 只連最近的 3 個——避免一展開就是一張覆蓋全 section 的蜘蛛網
+  const nearest = [...geo.others]
+    .sort((p, q) => Math.hypot(p.x - a.x, p.y - a.y) - Math.hypot(q.x - a.x, q.y - a.y))
+    .slice(0, 3)
   return (
     <svg
       className="connector-overlay"
@@ -252,7 +287,7 @@ function ConnectorOverlay({
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      {geo.others.map((o) => {
+      {nearest.map((o) => {
         const len = Math.hypot(o.x - a.x, o.y - a.y)
         return (
           <g key={o.id} className="connector-group">
@@ -273,23 +308,60 @@ function ConnectorOverlay({
   )
 }
 
-/* 材料樣本鋪面：每個 keyword 一塊生成織紋，cursor 掃過觸發背景 ripple */
-function EraMaterialStrip({ keywords }: { keywords: string[] }) {
-  const swatches = keywords.slice(0, 8)
+/* 材料樣本鋪面：每個年代不同形態（pinned / strips / tags / chips / slab），
+   hover 任一樣本 → onHover(true) 讓 EraScene 切換整個 section 的材料環境。
+   label 用可讀字級，不再是裝飾噪點。 */
+const MATERIAL_FORM: Record<string, string> = {
+  '1970s': 'pinned', // 撕邊紙片 + 圖釘
+  '1980s': 'slab',   // 厚實大塊材料板
+  '1990s': 'strips', // 垂直布條
+  '2000s': 'tags',   // tabloid 標籤 / 票根
+  '2010s': 'labels', // 物流標籤 / receipt
+  '2020s': 'chips',  // 堆疊材料碼片
+}
+
+function EraMaterialStrip({
+  eraId,
+  keywords,
+  material,
+  onHover,
+}: {
+  eraId: string
+  keywords: string[]
+  material?: string
+  onHover: (on: boolean) => void
+}) {
+  const form = MATERIAL_FORM[eraId] ?? 'pinned'
+  // 把該年代的標誌材料放第一個，其餘用 keywords 補滿
+  const labels = [material, ...keywords.filter((k) => k !== material)].filter(Boolean).slice(0, 6) as string[]
+
   return (
     <div className="era-material-strip">
-      <span className="era-material-strip-label type-mono-xs">MATERIAL SAMPLES</span>
-      <div className="era-material-swatches">
-        {swatches.map((kw, i) => (
-          <div
+      <div className="era-material-head">
+        <span className="era-material-strip-label type-mono-sm">MATERIAL SAMPLES</span>
+        <span className="type-mono-xs era-material-hint">HOVER TO READ THE SURFACE</span>
+      </div>
+      <div
+        className={`era-material-set era-material-${form}`}
+        onPointerLeave={() => onHover(false)}
+      >
+        {labels.map((kw, i) => (
+          <button
             key={kw}
-            className={`material-swatch material-swatch-${i % 5}`}
+            type="button"
+            className={`mat-sample mat-sample-${i % 4}`}
             data-lens="inspect"
-            data-lens-label={`SWATCH · ${kw.toUpperCase()}`}
+            data-lens-label={`MATERIAL · ${kw.toUpperCase()}`}
+            onPointerEnter={() => onHover(true)}
+            onFocus={() => onHover(true)}
+            onBlur={() => onHover(false)}
           >
-            <span className="material-swatch-weave" aria-hidden="true" />
-            <span className="material-swatch-label type-mono-xs">{kw}</span>
-          </div>
+            <span className="mat-sample-weave" aria-hidden="true" />
+            <span className="mat-sample-index type-mono-xs" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span className="mat-sample-label">{kw}</span>
+          </button>
         ))}
       </div>
     </div>
