@@ -8,7 +8,7 @@ export const garments: Garment[] = [
     id: 'GARM-001',
     name: 'Leather Jacket',
     category: 'outerwear',
-    statement: 'Rebellion made wearable. Then sold back to the people it was made against.',
+    statement: 'Asymmetric zip, heavy hardware, Schott\'s Perfecto cut — Brando\'s biker armour that punk politicised and every later decade sold back as luxury.',
     culturalFunction:
       'The leather jacket entered fashion as signifier of motorcyle culture and working-class masculinity (Marlon Brando, The Wild One, 1953). Punk absorbed and politicized it. Later decades commercialized it without exhausting it — Schott, Perfecto, biker cut, moto construction have passed through every decade since.',
     keyMoments: [
@@ -46,7 +46,7 @@ export const garments: Garment[] = [
     id: 'GARM-002',
     name: 'Sneaker',
     category: 'footwear',
-    statement: 'From performance to currency. The object that indexed a generation\'s desire.',
+    statement: 'Air Jordan 1, visible-Air midsoles, limited colourways — athletic rubber that became a speculative asset traded by box and resale premium.',
     culturalFunction:
       'The sneaker\'s transition from athletic equipment to fashion object to financial instrument represents one of the most complete cultural transformations of the post-1970 period. Nike Air Jordan 1 (1985), Air Max 1 (1987), and the Adidas Stan Smith codified different vocabularies — sport performance, design fetish, minimalist classic. By the 2010s, the limited-release sneaker had become a speculative asset class.',
     keyMoments: [
@@ -96,7 +96,7 @@ export const garments: Garment[] = [
     id: 'GARM-003',
     name: 'Denim',
     category: 'denim',
-    statement: 'Workwear. Youth uniform. Luxury object. The garment that absorbs every meaning.',
+    statement: 'Indigo selvedge from Levi\'s workwear to disco flare to low-rise to wide-leg — the one cloth each decade recuts to argue authenticity against aspiration.',
     culturalFunction:
       'Denim\'s movement from Levi\'s workwear to rebellion uniform (1950s–60s) to the 1970s flare to Calvin Klein\'s campaign (1980) to Marc Jacobs\' grunge luxury layering (1993) to Margiela\'s reconstruction to 2000s low-rise to 2020s wide-leg revival traces a complete cultural circuit. Each decade uses denim to negotiate authenticity versus aspiration.',
     keyMoments: [
@@ -132,7 +132,7 @@ export const garments: Garment[] = [
     id: 'GARM-004',
     name: 'Hoodie',
     category: 'jersey',
-    statement: 'Athletic comfort institutionalized. Then sanctified by a luxury price tag.',
+    statement: 'Champion\'s reverse-weave cotton, drawstring and kangaroo pocket — a gym garment made hip-hop uniform, then resold by Vetements at a hundred times the price.',
     culturalFunction:
       'The hoodie moved from athletic and workwear garment to hip-hop uniform to high fashion through the 1990s–2010s. Champion\'s reverse weave construction (1938) was adopted by streetwear culture in the 1980s. By the 2010s, luxury hoodies from Vetements, Balenciaga, and Raf Simons sold at hundreds of times the price of the original athletic garment while retaining its visual simplicity.',
     keyMoments: [
@@ -169,7 +169,7 @@ export const garments: Garment[] = [
     id: 'GARM-005',
     name: 'Handbag — The It Object',
     category: 'bag',
-    statement: 'Not what\'s inside. What it says from the outside.',
+    statement: 'The Birkin, the Baguette, the City — structured leather and visible hardware carried on a photographed arm to broadcast a place in the hierarchy, not to hold anything.',
     culturalFunction:
       'The "It Bag" as concept emerged in the late 1990s–2000s: a specific bag that functions as cultural signal rather than utility object. The Fendi Baguette (1997), Balenciaga City (2001), Louis Vuitton Speedy, and Hermès Birkin (1984) each performed this function differently — through scarcity, celebrity adoption, aesthetic novelty, or heritage claim. Ownership communicated location in a social hierarchy.',
     keyMoments: [
@@ -218,7 +218,7 @@ export const garments: Garment[] = [
     id: 'GARM-006',
     name: 'Tabi Boot',
     category: 'footwear',
-    statement: 'The split toe. An argument about the foot that won\'t be resolved.',
+    statement: 'A split-toe boot on a chunky heel, lifted from Japanese Tabi socks — in continuous production since 1988 and still dividing the foot people can\'t agree on.',
     culturalFunction:
       'The Margiela Tabi boot debuted at Martin Margiela\'s first collection in October 1988, referencing Japanese Tabi socks (traditional split-toe socks worn with sandals and zori). The Tabi construction — dividing the toe compartment — has been carried through every subsequent Maison Margiela season and has never ceased production. Its longevity makes it one of fashion\'s most durable single design propositions. Under John Galliano\'s creative direction (from 2014), the Tabi has been extended into new colorways, heel heights, and construction variations.',
     keyMoments: [
@@ -261,7 +261,7 @@ export const garments: Garment[] = [
     id: 'GARM-007',
     name: 'Slip Dress',
     category: 'outerwear',
-    statement: 'Underwear made outerwear. The inside becomes the outside.',
+    statement: 'Bias-cut silk on spaghetti straps, lifted straight from lingerie — worn over a T-shirt or alone until underwear became the 1990s\' clearest statement.',
     culturalFunction:
       'The slip dress — a simple, bias-cut, spaghetti-strap garment derived from lingerie construction — became one of the 1990s\' signature silhouettes. Worn over T-shirts (grunge), under blazers, or alone as statement minimalism, it concentrated the decade\'s aesthetic tensions: exposure vs. layering, luxury vs. refusal, body vs. structure. Calvin Klein, Helmut Lang, and Prada produced definitive versions. Kate Moss and Carolyn Bessette-Kennedy became key references.',
     keyMoments: [
@@ -286,7 +286,7 @@ export const garments: Garment[] = [
     id: 'GARM-008',
     name: 'Trench Coat',
     category: 'outerwear',
-    statement: 'Military utility. Heritage product. Fashion\'s most durable format.',
+    statement: 'A belt, a storm flap, epaulettes in heritage beige — Burberry\'s military utility that Margiela could reverse and each generation re-reads without exhausting.',
     culturalFunction:
       'The trench coat\'s fashion history runs through Burberry\'s utility heritage, Margiela\'s deconstruction (reversed linings, extended proportions), and Raf Simons\' youth-culture reframing. Its durability as a fashion format lies in its structural clarity — a belt, a collar, a placket — that each generation can re-read without exhausting it.',
     keyMoments: [
@@ -315,7 +315,7 @@ export const garments: Garment[] = [
     id: 'GARM-009',
     name: 'Oversized Logo Sweatshirt / T-Shirt',
     category: 'jersey',
-    statement: 'The brand\'s name, worn as the entire proposition.',
+    statement: 'Block screen-printed text on plain jersey — from the Supreme box logo, the brand name alone became the whole garment, legible across a street as proof of access.',
     culturalFunction:
       'From the Supreme Box Logo to Balenciaga\'s large-font logo garments, the oversized logo T-shirt and sweatshirt of the 2010s proposed the brand name — text only — as sufficient design content. This was both a reduction and an intensification: the garment contained nothing except its own brand signal, making it legible at a distance as a marker of cultural and financial access.',
     keyMoments: [
@@ -339,7 +339,7 @@ export const garments: Garment[] = [
     id: 'GARM-010',
     name: 'Quiet Coat — No-Logo Outerwear',
     category: 'outerwear',
-    statement: 'The absence of the logo is the most expensive thing about it.',
+    statement: 'Camel and double cashmere, no visible label, structured drape — The Row-adjacent outerwear that signals through cloth and cut, and only to those who already recognise it.',
     culturalFunction:
       'The "quiet coat" — cashmere overcoat, camel hair, unbranded or subtly branded — represents the anti-logo proposition as it matured in the 2020s. The Row\'s Maban coat, Toteme\'s structured wrap, Brunello Cucinelli\'s double cashmere — these garments signal through material and proportion rather than branding. They require the viewer to already know, which is itself a form of exclusion.',
     keyMoments: [
