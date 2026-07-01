@@ -14,7 +14,7 @@ export const cases: Case[] = [
     year: 1974,
     brand: 'Vivienne Westwood / Malcolm McLaren',
     designer: 'Vivienne Westwood',
-    statement: 'Fashion as manifesto. The boutique itself was the collection.',
+    statement: 'Bondage trousers, rubber, ripped slogan tees at 430 King\'s Road — fetish wear recut into the uniform of punk.',
     context:
       'Malcolm McLaren and Vivienne Westwood opened SEX at 430 King\'s Road, Chelsea in 1974, having previously run Let It Rock (1971) and Too Fast to Live, Too Young to Die (1972) at the same location. SEX sold bondage trousers, ripped T-shirts with provocative imagery, rubber clothing, and fetish wear — reframing transgressive sexual aesthetics as street fashion. The boutique was later renamed Seditionaries (1976), then World\'s End (1980). Westwood\'s garments for the Sex Pistols — worn from the mid-1970s — established the visual grammar of British punk. The boutique operated as both retail space and cultural organ.',
     sourceNotes: [
@@ -47,7 +47,7 @@ export const cases: Case[] = [
     year: 1977,
     brand: 'Halston',
     designer: 'Halston (Roy Halston Frowick)',
-    statement: 'The nightclub as runway. The body as occasion.',
+    statement: 'Bias-cut halter gowns and the Ultrasuede shirtdress — Halston dressed Studio 54 until day and night wore the same fluid jersey.',
     context:
       'Studio 54 opened in New York City on April 26, 1977. Halston — who had designed Jackie Kennedy\'s pillbox hat for the 1961 inauguration and launched his own label in 1968 — became the defining designer of Studio 54\'s social landscape. His Ultrasuede shirtdress (introduced 1972) and bias-cut halter gowns dressed Liza Minnelli, Bianca Jagger, Marisa Berenson, and Andy Warhol\'s extended circle. The Studio 54 context collapsed the distinction between daywear and nightwear, socialite and celebrity — producing a new kind of dressing that was simultaneously effortless and spectacle. Halston later licensed his name to JCPenney in 1983, which ended his relationship with Bergdorf Goodman and began a commercial decline widely discussed in fashion history.',
     sourceNotes: [
@@ -88,7 +88,7 @@ export const cases: Case[] = [
     brand: 'Yves Saint Laurent',
     designer: 'Yves Saint Laurent',
     subject: 'Bianca Jagger',
-    statement: 'A suit worn by a woman rewrote what a suit could mean.',
+    statement: 'Le Smoking\'s tuxedo jacket and trousers — a man\'s evening uniform recut for a woman until the lapel itself reads as provocation.',
     context:
       'Bianca Jagger\'s entrance at Studio 54 on a white horse for her 1977 birthday — wearing a white Saint Laurent tuxedo suit — is among the decade\'s most reproduced fashion images. Yves Saint Laurent had introduced Le Smoking, the women\'s tuxedo, in 1966 (Autumn/Winter 1966 collection); by the mid-1970s it had become a recurring element of his vocabulary and was available as both couture and Rive Gauche. Jagger\'s styling embodied the 1970s understanding that the tuxedo suit could simultaneously read as masculine uniform and transgressive femininity. The image circulated through the fashion and entertainment press, reinforcing the idea that a single look — worn by the right person, in the right room — could define a cultural moment.',
     sourceNotes: [
@@ -159,7 +159,7 @@ export const cases: Case[] = [
     brand: 'Calvin Klein',
     designer: 'Calvin Klein',
     subject: 'Brooke Shields',
-    statement: 'A 15-year-old and a jeans ad. The body becomes the brand argument.',
+    statement: 'Avedon shoots a 15-year-old in tight denim — the jeans sell on whose body wears them, not the seam.',
     context:
       'Calvin Klein\'s 1980 jeans campaign, photographed by Richard Avedon with 15-year-old Brooke Shields, was banned by some US television networks and generated significant controversy. The tagline — "Nothing comes between me and my Calvins" — proposed the garment as intimate object, the celebrity body as guarantee. The campaign represented a shift in luxury marketing toward aspirational sexuality, and toward the use of celebrity (rather than model) as brand anchor. Calvin Klein\'s advertising under the creative direction of Sam Shahid continued to use provocative imagery through the decade.',
     sourceNotes: [
@@ -193,7 +193,7 @@ export const cases: Case[] = [
     year: '1979–1984',
     brand: 'Thierry Mugler',
     designer: 'Thierry Mugler',
-    statement: 'The shoulder as architecture. The body as machine.',
+    statement: 'Padded shoulders, cinched waist, chrome-hard tailoring — Mugler builds the body into a machine and makes the silhouette the argument for power.',
     context:
       'Thierry Mugler\'s collections through the late 1970s and 1980s developed an extreme vocabulary of structured shoulders, cinched waists, and theatrical silhouettes that referenced science fiction, superhero imagery, and automotive design. His runway shows were theatrical events with elaborate staging. Grace Jones\'s performances and appearances in Mugler were among the decade\'s defining fashion-culture overlaps. Claude Montana developed a parallel and equally exaggerated shoulder vocabulary in leather and suede. Together they made the padded shoulder the visual signature of 1980s power dressing — though Giorgio Armani\'s unstructured suit proposed a different, less theatrical version of professional authority.',
     sourceNotes: [
@@ -255,7 +255,7 @@ export const cases: Case[] = [
     year: 1987,
     brand: 'Nike',
     designer: 'Tinker Hatfield',
-    statement: 'A window cut into a sole. The interior becomes the display.',
+    statement: 'A transparent window cut into the midsole shows the air pocket inside — the shoe\'s engineering becomes the thing on display.',
     context:
       'The Nike Air Max 1, designed by Tinker Hatfield and released in 1987, introduced a visible Air cushioning unit — a transparent window in the midsole that displayed the air pocket inside. The design was reportedly inspired by the Centre Georges Pompidou in Paris, where structural systems are displayed on the building\'s exterior. The Air Max 1 initiated the "visible Air" era and inaugurated a new relationship between athletic performance technology and fashion aesthetics. It became the founding object of sneaker collecting culture as it developed through the following decades.',
     sourceNotes: [
@@ -290,7 +290,7 @@ export const cases: Case[] = [
     year: 1988,
     brand: 'Maison Margiela',
     designer: 'Martin Margiela',
-    statement: 'No logo. No faces. An address where a collection should be.',
+    statement: 'A blank label held by four white stitches, split-toe Tabi boots, seams turned outward — the house signs nothing and shows the construction instead.',
     context:
       'Martin Margiela\'s first collection was presented at Chez Régine in Paris in October 1988, for the Fall/Winter 1988–89 season. The collection introduced the Tabi boot — a split-toe shoe referencing Japanese Tabi socks — and a label that named no designer, only a series of numbers. Models\' faces were obscured or turned away from cameras. The show took place in a working-class neighbourhood, chairs were improvised, and the collection was entirely white or pale. It established a systematic deconstruction of fashion\'s conventions — anonymity, anti-spectacle, construction visible in the finished garment — that would define the house for the following decades. Margiela was appointed creative director of Hermès women\'s prêt-à-porter in 1997, serving until 2003.',
     sourceNotes: [
@@ -330,7 +330,7 @@ export const cases: Case[] = [
     year: 1993,
     brand: 'Perry Ellis',
     designer: 'Marc Jacobs',
-    statement: 'The wrong music, made into a collection. He was fired for it.',
+    statement: 'Silk slip dresses over thermals, flannel and knit caps sent down a luxury runway — grunge priced as ready-to-wear, and he was fired for it.',
     context:
       'Marc Jacobs, then creative director at Perry Ellis, presented a Spring/Summer 1993 collection that translated grunge aesthetic — layered flannels, knit caps, silk slip dresses over thermal underwear — into luxury ready-to-wear. The collection was widely covered but commercially rejected; Jacobs was dismissed from Perry Ellis shortly after. The collection has since been recontextualized as ahead of its moment. Jacobs launched his own label in 1993 and was appointed Louis Vuitton artistic director in 1997, a position he held until 2013. The Perry Ellis collection is a recurring reference in discussions of fashion\'s relationship to subcultural authenticity.',
     sourceNotes: [
@@ -427,7 +427,7 @@ export const cases: Case[] = [
     year: 2001,
     brand: 'Balenciaga',
     designer: 'Nicolas Ghesquière',
-    statement: 'A bag as decade. You know the year from the hardware.',
+    statement: 'Distressed lambskin, oversized zips, fringed moto-straps — an It bag that sold on wear and celebrity carry, not a logo.',
     context:
       'The Balenciaga Motorcycle bag (also known as the City bag or Lariat) was introduced in Balenciaga\'s Fall 2001 collection under Nicolas Ghesquière\'s creative direction. Its distressed lambskin leather, oversized zippers, silver hardware, and fringed straps proposed a different luxury vocabulary from the logo-centric bags that dominated the market. It became widely carried by celebrities and was photographed extensively through the mid-2000s paparazzi era — Kate Moss, Lindsay Lohan, Nicole Richie, and Sienna Miller among others. The bag\'s market penetration demonstrated that celebrity endorsement (unpaid, through actual use) could replace advertising.',
     sourceNotes: [
@@ -456,7 +456,7 @@ export const cases: Case[] = [
     year: 2003,
     brand: 'Louis Vuitton',
     designer: 'Marc Jacobs × Takashi Murakami',
-    statement: 'The monogram updated. Art as brand maintenance.',
+    statement: 'Murakami repaints the LV monogram in 33 colours on white canvas — the heritage logo maintained by turning it into pop art.',
     context:
       'The Louis Vuitton × Takashi Murakami collaboration — the Monogram Multicolore — was introduced in 2003, during Marc Jacobs\' tenure as LV\'s artistic director. Murakami\'s superflat aesthetic transformed the classic LV monogram into a 33-color pattern on white or black canvas. The collaboration was one of the decade\'s most commercially successful luxury projects and established the artist-collaboration format as a standard tool in luxury brand strategy. A second collaboration, the Cherry Blossom pattern, preceded it in 2003. Murakami and LV would continue collaborating through 2015.',
     sourceNotes: [
@@ -484,7 +484,7 @@ export const cases: Case[] = [
     year: 2004,
     brand: 'H&M',
     designer: 'Karl Lagerfeld',
-    statement: 'The format changes. Luxury becomes a template.',
+    statement: 'A designer\'s name on a fast-fashion rail, sold out in hours — luxury proven to sell on the signature, not the cloth.',
     context:
       'H&M\'s collaboration with Karl Lagerfeld in November 2004 was the first major instance of a luxury fashion designer releasing a collection through a mass-market fast fashion retailer. The collection sold out within hours in most markets and established a commercially viable format — designer × fast fashion — that H&M and competitors replicated repeatedly: Stella McCartney (2005), Viktor & Rolf (2006), Roberto Cavalli (2007), Comme des Garçons (2008). The collaboration\'s success demonstrated that the designer\'s name — as sign — could generate demand independently of price point or material quality.',
     sourceNotes: [
@@ -511,7 +511,7 @@ export const cases: Case[] = [
     title: 'The Rachel Zoe Moment — Celebrity Styling as Trend Engine, c.2004–2007',
     year: 'c.2004–2007',
     subject: 'Rachel Zoe',
-    statement: 'The stylist becomes the industry. The client becomes the product.',
+    statement: 'Oversized sunglasses, boho layers, a giant tote on a photographed client — the stylist, not the designer, decides what circulates.',
     context:
       'Rachel Zoe emerged as a defining celebrity stylist in the mid-2000s, with clients including Nicole Richie, Lindsay Lohan, Mischa Barton, and Cameron Diaz. The "Zoe Effect" — her ability to propel a garment or accessory into mainstream desirability through celebrity placement — was widely discussed in fashion and entertainment press. Her aesthetic (oversized sunglasses, bohemian layers, oversized tote bags, high platform heels) entered popular culture through celebrity coverage in People, US Weekly, and the emerging fashion blog ecosystem. Zoe represented a structural shift: the stylist, rather than the designer or the fashion editor, as the primary driver of what people wore.',
     sourceNotes: [
@@ -566,7 +566,7 @@ export const cases: Case[] = [
     year: 2017,
     brand: 'Supreme × Louis Vuitton',
     designer: 'Kim Jones × James Jebbia',
-    statement: 'Two logos share a surface. The hierarchy finalizes its collapse.',
+    statement: 'Supreme\'s box logo printed onto the LV monogram trunk — streetwear and heritage share one surface and the hierarchy between them ends.',
     context:
       'The Supreme × Louis Vuitton collaboration was presented at Louis Vuitton\'s Men\'s Spring/Summer 2017 show in Paris in January 2017, during Kim Jones\' tenure as Men\'s artistic director (2011–2018). The collection placed the LV Monogram and Supreme\'s Box Logo on the same objects: trunks, bags, accessories, and ready-to-wear. It became one of the most covered fashion collaborations of the decade, with Supreme-branded LV pieces selling at significant secondary market premiums. Supreme was founded in 1994 by James Jebbia. The collaboration formally institutionalized the streetwear × luxury merger that had been developing through the decade.',
     sourceNotes: [
@@ -600,7 +600,7 @@ export const cases: Case[] = [
     year: 2017,
     brand: 'Balenciaga',
     designer: 'Demna Gvasalia',
-    statement: 'The ugly sneaker. It sells. The category resolves.',
+    statement: 'Three sole units stacked into a deliberately heavy, anti-athletic sole — ugliness priced near $850 and made into a luxury category.',
     context:
       'The Balenciaga Triple S, introduced in the brand\'s Spring 2017 collection under Demna Gvasalia, combined multiple sole units layered over each other into an exaggerated "dad sneaker" silhouette. Its deliberate awkwardness — heavy, chunky, anti-athletic — reframed ugliness as luxury aesthetics. Priced at approximately $850 at introduction, it generated a waiting list and significant secondary market activity. The Triple S established the "ugly sneaker" as a luxury product category and influenced the design direction of competing brands. Its popularity peaked approximately 2018–2019.',
     sourceNotes: [
@@ -627,7 +627,7 @@ export const cases: Case[] = [
     year: 2017,
     brand: 'Off-White × Nike',
     designer: 'Virgil Abloh',
-    statement: 'Ten silhouettes. Deconstructed. "Off-White™ c/o Virgil Abloh™"',
+    statement: 'Ten Nikes cut open — exposed stitching, an orange zip tie, "AIR" in quotation marks — each shoe annotated with its own construction.',
     context:
       'Virgil Abloh\'s Off-White × Nike collaboration "The Ten" (September 2017) redesigned ten iconic Nike silhouettes — including the Air Jordan 1, Air Force 1, Blazer, Air Presto, Air Max 90, Air Max 97, Zoom Vaporfly, React Hyperdunk, Chuck Taylor, and UltraFlight — exposing construction details, adding industrial strapping, and placing Abloh\'s signature text and quotation marks on each. The project was framed as a deconstruction exercise: highlighting what the original shoe contained. The Air Jordan 1 "Chicago" from the collaboration became one of the most valuable sneakers on the secondary market. Abloh was appointed LV Men\'s creative director in March 2018 and died in November 2021.',
     sourceNotes: [
@@ -656,7 +656,7 @@ export const cases: Case[] = [
     year: 2020,
     brand: 'Gucci',
     subject: 'Harry Styles',
-    statement: 'A man in a gown on a magazine cover. The conversation arrives at the newsstand.',
+    statement: 'A man in Gucci lace and ruffles on British Vogue\'s first solo male cover — gender-coded dressing placed on a century-old masthead.',
     context:
       'Harry Styles appeared on the cover of British Vogue\'s December 2020 issue — the first solo male cover in the magazine\'s history — wearing Gucci, photographed by Tyler Mitchell. The images showed Styles in lace, ruffles, frocks, and mixed gender-coded garments, styled by Camilla Nickerson. The cover generated significant media coverage across fashion and general press, with discussions centering on gender presentation in fashion and the role of celebrity in shifting mainstream attitudes. Styles had appeared in gender-fluid styling in fashion contexts previously; the Vogue cover placed it in the context of a centenary fashion institution.',
     sourceNotes: [
@@ -713,7 +713,7 @@ export const cases: Case[] = [
     year: 2023,
     brand: 'Philo',
     designer: 'Phoebe Philo',
-    statement: 'Five years\' absence. The waiting list formed before the first look.',
+    statement: 'Muted tailoring, no wholesale, no logo, sold straight from the site — five years\' absence turned restraint into the most-waited-for drop.',
     context:
       'Phoebe Philo served as creative director of Celine from 2008 to 2018, during which the brand became a reference point for intellectual feminism in fashion, quiet luxury, and anti-logo dressing. Her departure in 2018 was widely reported and discussed. Her announcement that she would establish a new independent brand — with LVMH as minority investor — generated significant anticipation. The first collection was released directly via philo.com in October 2023, with pieces priced at substantial luxury levels and no wholesale distribution. The "old Celine" aesthetic had developed a significant secondary market and collector base in the years between her departure and the new brand\'s launch.',
     sourceNotes: [
@@ -744,7 +744,7 @@ export const cases: Case[] = [
     type: 'cultural-collision',
     title: 'Quiet Luxury and the Succession Effect, c.2022–2023',
     year: 'c.2022–2023',
-    statement: 'No logo. No noise. The most expensive thing in the room identifies itself by not trying.',
+    statement: 'Cashmere, a muted palette, precise cut, no visible label — The Row-adjacent dressing that only reads as expensive if you already know.',
     context:
       'The term "quiet luxury" circulated widely in fashion media from approximately 2022, describing dressing characterized by material quality, muted palette, precise tailoring, and the absence of visible logos. Key reference brands included The Row, Toteme, Brunello Cucinelli, and Loro Piana. The aesthetic was associated in press coverage with the costume design of HBO\'s Succession (costume designer: Michelle Matland), which dressed its ultra-wealthy characters in understated but expensive garments. The Row — founded by Mary-Kate and Ashley Olsen in 2006 — became the most frequently cited quiet luxury reference; its pieces circulated heavily in fashion editorial and social media. The trend existed in tension with the continued visibility of logo-heavy streetwear.',
     sourceNotes: [
